@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Punto Raw - Mastermind Podcast Site
 
-## Getting Started
+A modern, dark-themed podcast website built with Next.js, TypeScript, Tailwind CSS, and shadcn/ui.
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Punto Raw is a monthly mastermind podcast focused on raw intentions, accountability, and growth. This site serves as the home for episodes, team information, and speaker schedule.
+
+## Features
+
+- **Dark Premium Design** - Elegant, minimal aesthetic with custom dark theme
+- **Hero Section** - Full-screen landing with CTA to episodes
+- **Episode Grid** - Card-based layout for episode discovery
+- **Episode Pages** - Full episode details with audio player and content
+- **Schedule Page** - Monthly speaker rotation with pass system
+- **Team Page** - Showcase of team members and roles
+- **Responsive Design** - Mobile-first, works on all devices
+- **Audio Integration** - Built-in HTML5 audio player
+
+## Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4
+- **Components:** shadcn/ui
+- **Deployment:** Cloudflare Pages
+
+## Project Structure
+
+```
+├── app/
+│   ├── episodes/          # Episodes listing and detail pages
+│   ├── schedule/          # Speaker schedule page
+│   ├── team/              # Team members page
+│   ├── layout.tsx         # Root layout with header/footer
+│   ├── page.tsx           # Homepage with hero
+│   └── globals.css        # Dark theme styles
+├── components/
+│   └── episode-card.tsx   # Reusable episode card component
+└── public/                # Static assets
+    ├── team/              # Team member images
+    └── episodes/          # Episode artwork
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Install dependencies
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Run development server
+npm run dev
 
-## Learn More
+# Build for production
+npm run build
 
-To learn more about Next.js, take a look at the following resources:
+# Start production server
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment to Cloudflare Pages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Deploy to Cloudflare Pages
+npm run build
+wrangler pages deploy out
+```
 
-## Deploy on Vercel
+Or use GitHub integration:
+1. Push to GitHub
+2. Connect repo to Cloudflare Pages
+3. Set build command: `npm run build`
+4. Set output directory: `.next`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Adding Episodes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Episodes are currently stored as data in page components. To add a new episode:
+
+1. Edit `/app/episodes/page.tsx` to add entry to `episodes` array
+2. Add corresponding episode detail to `/app/episodes/[slug]/page.tsx` in `episodes` object
+3. Add audio file to `/public/audio/`
+4. Commit and deploy
+
+Future: Integrate markdown-based episode system for easier management.
+
+## Team
+
+- **Greg Anthony** - Founder & Speaker
+- **Rafa** - Systems Architect & Co-Host
+- **RJ** - Audio Engineer & Creative Force
+- **Markus Corvus** - Organizer & Documentarian
+
+## License
+
+All rights reserved © 2024 Punto Raw
