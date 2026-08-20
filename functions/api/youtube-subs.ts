@@ -1,10 +1,8 @@
-interface Env {
-  YOUTUBE_API_KEY: string;
-}
-
 const CHANNEL_ID = "UCK0EHaEaACp8PE3zpcK6Y1w";
 
-export const onRequest: PagesFunction<Env> = async (context) => {
+export async function onRequest(context: {
+  env: { YOUTUBE_API_KEY?: string };
+}) {
   const API_KEY = context.env.YOUTUBE_API_KEY;
 
   if (!API_KEY) {
@@ -36,4 +34,4 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-};
+}
