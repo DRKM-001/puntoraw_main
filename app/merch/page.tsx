@@ -26,22 +26,9 @@ const merchItems: MerchItem[] = [
     name: "Camiseta .RAW",
     description:
       "Logo principal en el pecho. Algodón premium, corte unisex. Disponible en negro y blanco.",
-    price: "$35",
+    price: "$26",
     category: "camiseta",
-  },
-  {
-    name: "Sticker Pack .RAW",
-    description:
-      "Set de stickers de vinilo resistentes al agua. Logo y frases icónicas del podcast.",
-    price: "$12",
-    category: "sticker",
-  },
-  {
-    name: "Mug .RAW",
-    description:
-      "Taza de cerámica de 11oz con el logo del podcast. Apta para microondas y lavavajillas.",
-    price: "$22",
-    category: "mug",
+    imageUrl: "/tee_merch_01.png",
   },
 ];
 
@@ -127,27 +114,6 @@ export default function MerchPage() {
         <p className="text-lg text-gray-600 max-w-xl">
           Lleva el mensaje contigo. Productos para los que viven con intención.
         </p>
-      </section>
-
-      {/* Coming Soon Banner */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
-        <div className="bg-gray-900 text-white rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <p className="font-bold text-lg">Tienda próximamente</p>
-            <p className="text-gray-400 text-sm mt-1">
-              Estamos preparando todo. Síguenos en redes para enterarte cuando
-              lancemos.
-            </p>
-          </div>
-          <a
-            href="https://www.youtube.com/channel/UCK0EHaEaACp8PE3zpcK6Y1w"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100 transition-colors flex-shrink-0"
-          >
-            Seguir en YouTube
-          </a>
-        </div>
       </section>
 
       {/* Products */}
