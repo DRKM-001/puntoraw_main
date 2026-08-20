@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://puntoraw.org</loc><changefreq>weekly</changefreq><priority>1</priority></url>
+  <url><loc>https://puntoraw.org/episodes</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s2-e4-algo-tiene-que-morir</loc><lastmod>2026-08-08</lastmod><priority>0.8</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s2-e3-conveniencia-destruccion</loc><lastmod>2026-07-03</lastmod><priority>0.8</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s2-e2-piensas-o-confias</loc><lastmod>2026-06-20</lastmod><priority>0.8</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s2-e1-the-walking-dead</loc><lastmod>2026-05-22</lastmod><priority>0.8</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s1-e4-cambio-de-mentalidad</loc><lastmod>2025-03-31</lastmod><priority>0.7</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s1-e3-nunca-te-sientes-listo</loc><lastmod>2025-03-04</lastmod><priority>0.7</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s1-e2-si-no-avanzas-retrocedes</loc><lastmod>2024-12-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://puntoraw.org/episodes/s1-e1-arrastras-o-te-arrastran</loc><lastmod>2022-11-05</lastmod><priority>0.7</priority></url>
+  <url><loc>https://puntoraw.org/schedule</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://puntoraw.org/team</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://puntoraw.org/merch</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>
