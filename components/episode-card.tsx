@@ -9,6 +9,8 @@ interface EpisodeCardProps {
   episodeNumber: number;
   imageUrl?: string;
   slug: string;
+  duration?: string;
+  season?: number;
 }
 
 export function EpisodeCard({
@@ -19,8 +21,10 @@ export function EpisodeCard({
   episodeNumber,
   imageUrl,
   slug,
+  duration,
+  season,
 }: EpisodeCardProps) {
-  const formattedDate = new Date(date).toLocaleDateString("en-US", {
+  const formattedDate = new Date(date).toLocaleDateString("es-419", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -28,10 +32,10 @@ export function EpisodeCard({
 
   return (
     <Link href={`/episodes/${slug}`}>
-      <article className="group border border-slate-800 rounded-lg overflow-hidden hover:border-slate-600 transition bg-slate-900/50 hover:bg-slate-900 h-full flex flex-col cursor-pointer">
+      <article className="group border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all h-full flex flex-col cursor-pointer">
         {/* Image */}
         {imageUrl && (
-          <div className="relative w-full h-40 bg-slate-800 overflow-hidden">
+          <div className="relative w-full h-44 bg-gray-100 overflow-hidden">
             <Image
               src={imageUrl}
               alt={title}
@@ -42,27 +46,34 @@ export function EpisodeCard({
         )}
 
         {/* Content */}
-        <div className="p-6 flex flex-col flex-1">
+        <div className="p-5 flex flex-col flex-1">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-              Episode {episodeNumber}
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {season ? `T${season} · ` : ""}Ep {episodeNumber}
             </span>
-            <span className="text-xs text-slate-400">{formattedDate}</span>
+            <span className="text-xs text-gray-400">{formattedDate}</span>
           </div>
 
-          <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-slate-100 transition line-clamp-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-red-600 transition line-clamp-2">
             {title}
           </h3>
 
-          <p className="text-sm text-slate-400 mb-4">{speaker}</p>
+          <p className="text-sm text-gray-500 mb-3">{speaker}</p>
 
-          <p className="text-sm text-slate-300 mb-4 flex-1 line-clamp-3">
+          <p className="text-sm text-gray-600 mb-4 flex-1 line-clamp-3 leading-relaxed">
             {summary}
           </p>
 
-          <div className="flex items-center text-sm font-medium text-white group-hover:gap-2 transition">
-            Read More
-            <span className="ml-1 group-hover:translate-x-1 transition">→</span>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-red-600 group-hover:gap-2 transition-all flex items-center">
+              Escuchar
+              <span className="ml-1 group-hover:translate-x-1 transition-transform">
+                →
+              </span>
+            </span>
+            {duration && (
+              <span className="text-xs text-gray-400">{duration}</span>
+            )}
           </div>
         </div>
       </article>
