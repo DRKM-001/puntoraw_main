@@ -4,50 +4,74 @@ import { LivestreamSection } from "@/components/livestream-section";
 export default function Home() {
   return (
     <div>
-      {/* Hero Section — two-column: text left, livestream right */}
-      <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left: Text + CTAs */}
-          <div>
-            <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-4">
-              Podcast & Livestream
-            </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-[1.1] mb-6">
-              Intenciones
-              <br />
-              Auténticas.
-              <br />
-              Crecimiento.
-            </h1>
-            <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
-              Un podcast mastermind mensual donde cortamos el ruido y tenemos
-              conversaciones honestas sobre lo que realmente se necesita para
-              crecer — de verdad.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/episodes"
-                className="inline-flex items-center justify-center h-12 px-8 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                Escuchar Episodios
-              </Link>
-              <Link
-                href="/schedule"
-                className="inline-flex items-center justify-center h-12 px-8 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Ver Calendario
-              </Link>
-            </div>
-          </div>
+      {/* Hero — YouTube-style on mobile, two-column on desktop */}
 
-          {/* Right: Livestream / Latest Episode */}
-          <LivestreamSection />
+      {/* Mobile hero: title section + edge-to-edge video */}
+      <section className="lg:hidden">
+        {/* Hero title — above the video */}
+        <div className="px-4 pt-6 pb-4">
+          <p className="text-[10px] font-semibold text-red-600 uppercase tracking-widest mb-1">
+            Podcast & Livestream
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 leading-[1.15]">
+            Intenciones Auténticas. Crecimiento.
+          </h1>
+          <p className="text-sm text-gray-500 leading-relaxed mt-1">
+            Conversaciones honestas sobre lo que realmente se necesita para
+            crecer — de verdad.
+          </p>
+        </div>
+
+        {/* Video — full bleed */}
+        <LivestreamSection variant="mobile" />
+      </section>
+
+      {/* Desktop hero: original two-column layout */}
+      <section className="hidden lg:block">
+        <div className="max-w-6xl mx-auto px-6 py-28">
+          <div className="grid grid-cols-2 gap-16 items-center">
+            {/* Left: Text + CTAs */}
+            <div>
+              <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-4">
+                Podcast & Livestream
+              </p>
+              <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-[1.1] mb-6">
+                Intenciones
+                <br />
+                Auténticas.
+                <br />
+                Crecimiento.
+              </h1>
+              <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
+                Un podcast mastermind mensual donde cortamos el ruido y tenemos
+                conversaciones honestas sobre lo que realmente se necesita para
+                crecer — de verdad.
+              </p>
+              <div className="flex gap-3">
+                <Link
+                  href="/episodes"
+                  className="inline-flex items-center justify-center h-12 px-8 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  Escuchar Episodios
+                </Link>
+                <Link
+                  href="/schedule"
+                  className="inline-flex items-center justify-center h-12 px-8 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Ver Calendario
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: Livestream / Latest Episode */}
+            <LivestreamSection variant="desktop" />
+          </div>
         </div>
       </section>
 
       {/* Three Pillars */}
       <section className="border-t border-gray-100 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
             Lo Que Defendemos
           </h2>

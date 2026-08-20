@@ -50,7 +50,7 @@ export default function SchedulePage() {
   return (
     <div>
       {/* Header */}
-      <section className="max-w-4xl mx-auto px-6 py-16">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-10 md:py-16">
         <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-3">
           Rotación
         </p>
@@ -64,7 +64,7 @@ export default function SchedulePage() {
       </section>
 
       {/* Schedule Timeline */}
-      <section className="max-w-4xl mx-auto px-6 pb-20">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
         <div className="space-y-4">
           {schedule.map((episode, index) => (
             <div

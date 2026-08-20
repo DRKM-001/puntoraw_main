@@ -121,7 +121,7 @@ export default function EpisodesPage() {
   return (
     <div>
       {/* Header */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
         <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-3">
           Todos los Episodios
         </p>
@@ -173,11 +173,11 @@ export default function EpisodesPage() {
       </section>
 
       {/* Season 2 */}
-      <section className="max-w-6xl mx-auto px-6 pb-12">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-12">
         <h2 className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-6">
           Temporada 2
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {season2.map((episode) => (
             <EpisodeCard
               key={episode.slug}
@@ -195,11 +195,11 @@ export default function EpisodesPage() {
       </section>
 
       {/* Season 1 */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
         <h2 className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-6">
           Temporada 1
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {season1.map((episode) => (
             <EpisodeCard
               key={episode.slug}

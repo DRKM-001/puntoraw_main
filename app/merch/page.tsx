@@ -117,7 +117,7 @@ export default function MerchPage() {
   return (
     <div>
       {/* Header */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16">
         <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-3">
           Representa
         </p>
@@ -130,7 +130,7 @@ export default function MerchPage() {
       </section>
 
       {/* Coming Soon Banner */}
-      <section className="max-w-6xl mx-auto px-6 pb-10">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
         <div className="bg-gray-900 text-white rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="font-bold text-lg">Tienda próximamente</p>
@@ -151,7 +151,7 @@ export default function MerchPage() {
       </section>
 
       {/* Products */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {merchItems.map((item, i) => (
             <MerchCard key={i} item={item} />

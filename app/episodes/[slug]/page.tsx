@@ -234,10 +234,10 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
   return (
     <div>
       {/* Header */}
-      <section className="max-w-3xl mx-auto px-6 py-12">
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-12">
         <Link
           href="/episodes"
-          className="text-gray-400 hover:text-gray-900 transition text-sm mb-8 inline-flex items-center"
+          className="text-gray-400 hover:text-gray-900 transition text-sm mb-8 inline-flex items-center py-2"
         >
           ← Volver a Episodios
         </Link>
@@ -278,7 +278,7 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
       </section>
 
       {/* Content */}
-      <section className="max-w-3xl mx-auto px-6 pb-20">
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
         {/* Summary */}
         <p className="text-lg text-gray-600 leading-relaxed mb-10">
           {episode.summary}

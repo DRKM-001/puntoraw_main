@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import localFont from "next/font/local";
 import Link from "next/link";
+import { MobileNav } from "@/components/mobile-nav";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -145,17 +146,7 @@ export default function RootLayout({
               master_sessions<span className="text-red-600">.RAW</span><span className="text-gray-400">/podcast</span>
             </Link>
 
-            <nav className="flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+            <MobileNav />
           </div>
         </header>
 
@@ -164,7 +155,7 @@ export default function RootLayout({
 
         {/* Footer */}
         <footer className="border-t border-gray-100 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
                 <p className="text-lg font-bold tracking-tight text-gray-900">
@@ -175,12 +166,12 @@ export default function RootLayout({
                 </p>
               </div>
 
-              <div className="flex items-center gap-6">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+                    className="text-sm text-gray-500 hover:text-gray-900 transition-colors py-1"
                   >
                     {link.label}
                   </Link>
@@ -189,7 +180,7 @@ export default function RootLayout({
             </div>
 
             {/* Podcast Platform Badges */}
-            <div className="mt-6 flex flex-wrap items-center gap-4">
+            <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4">
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                 Escúchanos en
               </span>
