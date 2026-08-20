@@ -73,7 +73,7 @@ export default function Home() {
       <section className="border-t border-gray-100 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-            Lo Que Defendemos
+            Nuestro Norte
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -92,8 +92,8 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Buscar el Crecimiento
+              <h3 className="text-xl font-extrabold text-gray-900 mb-2">
+                Exige Crecimiento
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed">
                 El crecimiento es intencional. No sucede por accidente.
@@ -117,8 +117,8 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Buscar la Responsabilidad
+              <h3 className="text-xl font-extrabold text-gray-900 mb-2">
+                Rinde Cuentas
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Invitamos retroalimentación honesta. Aceptamos responsabilidad.
@@ -146,8 +146,8 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Abrazar la Incomodidad
+              <h3 className="text-xl font-extrabold text-gray-900 mb-2">
+                Abraza lo Incómodo
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed">
                 La comodidad es el enemigo del progreso. Nos inclinamos hacia
