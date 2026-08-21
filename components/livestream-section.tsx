@@ -43,6 +43,7 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
     title: null,
     thumbnail: null,
   });
+  const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [subscribers, setSubscribers] = useState<string | null>(null);
 
@@ -165,19 +166,41 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
             </div>
           )}
         </div>
+      ) : playing && latestVideo.videoId ? (
+        /* Inline YouTube player — shown after clicking the thumbnail */
+        <div>
+          <div
+            className={`aspect-video w-full overflow-hidden bg-black ${
+              isMobile
+                ? "shadow-md"
+                : "rounded-xl border border-gray-200 shadow-lg"
+            }`}
+          >
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/${latestVideo.videoId}?autoplay=1&rel=0`}
+              title={latestVideo.title || "Punto Raw"}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          {!isMobile && latestVideo.title && (
+            <div className="mt-3">
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {latestVideo.title}
+              </p>
+            </div>
+          )}
+        </div>
       ) : (
-        /* NOT LIVE: show latest video from YouTube */
-        <a
-          href={
-            latestVideo.videoId
-              ? `https://www.youtube.com/watch?v=${latestVideo.videoId}`
-              : CHANNEL_URL
-          }
-          target="_blank"
-          rel="noopener noreferrer"
+        /* NOT LIVE: show latest video thumbnail — click to play inline */
+        <button
+          type="button"
+          onClick={() => setPlaying(true)}
+          className="w-full text-left"
         >
           <div
-            className={`group aspect-video w-full bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-center relative overflow-hidden ${
+            className={`group aspect-video w-full bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-center relative overflow-hidden cursor-pointer ${
               isMobile
                 ? ""
                 : "rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
@@ -220,7 +243,7 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
               .RAW
             </p>
           </div>
-        </a>
+        </button>
       )}
 
       {/* Subscriber count + links — both mobile and desktop */}
