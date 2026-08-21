@@ -19,6 +19,7 @@ const teamMembers = [
     imageUrl: "/greg02.PNG",
     pixelUrl: "/greg_pxl.jpg",
     initials: "GA",
+    coffeeUrl: "https://buymeacoffee.com/roveloga",
   },
   {
     name: "Rafa",
@@ -27,6 +28,7 @@ const teamMembers = [
     pixelUrl: "/rafa_pxl.JPG",
     videoUrl: "/rafa_loop.mp4",
     initials: "R",
+    coffeeUrl: "https://buymeacoffee.com/rafaelcdelgado",
   },
   {
     name: "RJ",
@@ -34,6 +36,9 @@ const teamMembers = [
     imageUrl: "/RJ01.jpeg",
     pixelUrl: "/rj_pxl.JPG",
     initials: "RJ",
+    coffeeUrl: "https://venmo.com/u/rjenriquez",
+    coffeeLabel: "Venmo",
+    coffeeColor: "blue" as const,
   },
   {
     name: "Markus",

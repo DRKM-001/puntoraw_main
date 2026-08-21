@@ -10,6 +10,9 @@ interface TeamCardProps {
   pixelUrl?: string;
   videoUrl?: string;
   initials: string;
+  coffeeUrl?: string;
+  coffeeLabel?: string;
+  coffeeColor?: "yellow" | "blue";
 }
 
 export function TeamCard({
@@ -19,6 +22,9 @@ export function TeamCard({
   pixelUrl,
   videoUrl,
   initials,
+  coffeeUrl,
+  coffeeLabel = "Buy me a coffee",
+  coffeeColor = "yellow",
 }: TeamCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -96,6 +102,20 @@ export function TeamCard({
         <p className="text-[10px] sm:text-xs text-white/60 mt-0.5 hidden sm:block">
           {role}
         </p>
+        {coffeeUrl && (
+          <a
+            href={coffeeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center gap-1 mt-1.5 sm:mt-2 text-[10px] sm:text-xs font-medium transition-colors ${
+              coffeeColor === "blue"
+                ? "text-blue-400 hover:text-blue-300"
+                : "text-yellow-400 hover:text-yellow-300"
+            }`}
+          >
+            <span>{coffeeLabel}</span>
+          </a>
+        )}
       </div>
     </div>
   );
