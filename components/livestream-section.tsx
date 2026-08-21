@@ -13,15 +13,12 @@ interface LiveStatus {
 const CHANNEL_URL = "https://www.youtube.com/channel/UCK0EHaEaACp8PE3zpcK6Y1w";
 
 /**
- * Check if it's near the Thursday show window (client-side).
+ * Choose a polling interval based on current live state.
+ * If live → poll every 30s to keep viewer count fresh.
+ * Otherwise → poll every 5 minutes to catch when a stream starts.
  */
-function isNearShowWindow(): boolean {
-  const nowPT = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
-  );
-  const day = nowPT.getDay();
-  const timeInMinutes = nowPT.getHours() * 60 + nowPT.getMinutes();
-  return day === 4 && timeInMinutes >= 1080 && timeInMinutes <= 1320;
+function getPollingInterval(isLive: boolean): number {
+  return isLive ? 30 * 1000 : 5 * 60 * 1000;
 }
 
 interface LivestreamSectionProps {
@@ -69,9 +66,9 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
     fetchSubscribers();
     const interval = setInterval(() => {
       checkLiveStatus();
-    }, isNearShowWindow() ? 2 * 60 * 1000 : 15 * 60 * 1000);
+    }, getPollingInterval(liveStatus.isLive));
     return () => clearInterval(interval);
-  }, [checkLiveStatus, fetchSubscribers]);
+  }, [checkLiveStatus, fetchSubscribers, liveStatus.isLive]);
 
   const isMobile = variant === "mobile";
 
