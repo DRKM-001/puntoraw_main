@@ -21,6 +21,12 @@ function getPollingInterval(isLive: boolean): number {
   return isLive ? 30 * 1000 : 5 * 60 * 1000;
 }
 
+interface LatestVideo {
+  videoId: string | null;
+  title: string | null;
+  thumbnail: string | null;
+}
+
 interface LivestreamSectionProps {
   variant?: "mobile" | "desktop";
 }
@@ -32,6 +38,11 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
     title: null,
     viewers: null,
   });
+  const [latestVideo, setLatestVideo] = useState<LatestVideo>({
+    videoId: null,
+    title: null,
+    thumbnail: null,
+  });
   const [loading, setLoading] = useState(true);
   const [subscribers, setSubscribers] = useState<string | null>(null);
 
@@ -41,6 +52,18 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
       if (res.ok) {
         const data = await res.json();
         if (data.subscribers) setSubscribers(data.subscribers);
+      }
+    } catch {
+      // Fail silently
+    }
+  }, []);
+
+  const fetchLatestVideo = useCallback(async () => {
+    try {
+      const res = await fetch("/api/youtube-latest");
+      if (res.ok) {
+        const data = await res.json();
+        setLatestVideo(data);
       }
     } catch {
       // Fail silently
@@ -64,11 +87,12 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
   useEffect(() => {
     checkLiveStatus();
     fetchSubscribers();
+    fetchLatestVideo();
     const interval = setInterval(() => {
       checkLiveStatus();
     }, getPollingInterval(liveStatus.isLive));
     return () => clearInterval(interval);
-  }, [checkLiveStatus, fetchSubscribers, liveStatus.isLive]);
+  }, [checkLiveStatus, fetchSubscribers, fetchLatestVideo, liveStatus.isLive]);
 
   const isMobile = variant === "mobile";
 
@@ -142,8 +166,16 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
           )}
         </div>
       ) : (
-        /* NOT LIVE: video-style thumbnail */
-        <Link href="/episodes/s2-e4-algo-tiene-que-morir">
+        /* NOT LIVE: show latest video from YouTube */
+        <a
+          href={
+            latestVideo.videoId
+              ? `https://www.youtube.com/watch?v=${latestVideo.videoId}`
+              : CHANNEL_URL
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <div
             className={`group aspect-video w-full bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-center relative overflow-hidden ${
               isMobile
@@ -151,8 +183,21 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
                 : "rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
             }`}
           >
+            {/* Thumbnail background */}
+            {latestVideo.thumbnail && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={latestVideo.thumbnail}
+                alt={latestVideo.title || "Último episodio"}
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            )}
+
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
+
             {/* Play button */}
-            <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-3 group-hover:bg-red-600/90 group-hover:scale-110 transition-all duration-300">
+            <div className="relative z-10 w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-3 group-hover:bg-red-600/90 group-hover:scale-110 transition-all duration-300">
               <svg
                 className="w-7 h-7 text-white ml-1"
                 fill="currentColor"
@@ -163,20 +208,19 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
             </div>
 
             {/* Episode info overlay */}
-            <p className="text-[11px] font-semibold text-white/50 uppercase tracking-widest mb-1">
+            <p className="relative z-10 text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1">
               Último Episodio
             </p>
-            <p className="text-sm font-bold text-white group-hover:text-red-300 transition-colors">
-              Algo tiene que morir
+            <p className="relative z-10 text-sm font-bold text-white group-hover:text-red-300 transition-colors px-4 line-clamp-2">
+              {latestVideo.title || "Punto Raw"}
             </p>
-            <p className="text-xs text-white/50 mt-1">T2 · Ep 4</p>
 
             {/* .RAW branding watermark */}
-            <p className="absolute bottom-3 right-4 text-[10px] font-bold text-white/20 tracking-wide">
+            <p className="absolute bottom-3 right-4 text-[10px] font-bold text-white/20 tracking-wide z-10">
               .RAW
             </p>
           </div>
-        </Link>
+        </a>
       )}
 
       {/* Subscriber count + links — both mobile and desktop */}
