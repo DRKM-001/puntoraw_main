@@ -29,9 +29,9 @@ export default function Home() {
       {/* Desktop hero: original two-column layout */}
       <section className="hidden lg:block">
         <div className="max-w-6xl mx-auto px-6 py-28">
-          <div className="grid grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-12 gap-12 items-center">
             {/* Left: Text + CTAs */}
-            <div>
+            <div className="col-span-5">
               <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-4">
                 Podcast & Livestream
               </p>
@@ -64,7 +64,9 @@ export default function Home() {
             </div>
 
             {/* Right: Livestream / Latest Episode */}
-            <LivestreamSection variant="desktop" />
+            <div className="col-span-7">
+              <LivestreamSection variant="desktop" />
+            </div>
           </div>
         </div>
       </section>

@@ -194,56 +194,62 @@ export function LivestreamSection({ variant = "desktop" }: LivestreamSectionProp
         </div>
       ) : (
         /* NOT LIVE: show latest video thumbnail — click to play inline */
-        <button
-          type="button"
-          onClick={() => setPlaying(true)}
-          className="w-full text-left"
-        >
-          <div
-            className={`group aspect-video w-full bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-center relative overflow-hidden cursor-pointer ${
-              isMobile
-                ? ""
-                : "rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
-            }`}
+        <div>
+          <button
+            type="button"
+            onClick={() => setPlaying(true)}
+            className="w-full text-left"
           >
-            {/* Thumbnail background */}
-            {latestVideo.thumbnail && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={latestVideo.thumbnail}
-                alt={latestVideo.title || "Último episodio"}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-            )}
+            <div
+              className={`group aspect-video w-full bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center relative overflow-hidden cursor-pointer ${
+                isMobile
+                  ? ""
+                  : "rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
+              }`}
+            >
+              {/* Thumbnail background */}
+              {latestVideo.thumbnail && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={latestVideo.thumbnail}
+                  alt={latestVideo.title || "Último episodio"}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              )}
 
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
+              {/* Light overlay for play button visibility */}
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
 
-            {/* Play button */}
-            <div className="relative z-10 w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-3 group-hover:bg-red-600/90 group-hover:scale-110 transition-all duration-300">
-              <svg
-                className="w-7 h-7 text-white ml-1"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              {/* Play button */}
+              <div className="relative z-10 w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-red-600/90 group-hover:scale-110 transition-all duration-300">
+                <svg
+                  className="w-7 h-7 text-white ml-1"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+
+              {/* .RAW branding watermark */}
+              <p className="absolute bottom-3 right-4 text-[10px] font-bold text-white/20 tracking-wide z-10">
+                .RAW
+              </p>
             </div>
+          </button>
 
-            {/* Episode info overlay */}
-            <p className="relative z-10 text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1">
-              Último Episodio
-            </p>
-            <p className="relative z-10 text-sm font-bold text-white group-hover:text-red-300 transition-colors px-4 line-clamp-2">
-              {latestVideo.title || "Punto Raw"}
-            </p>
-
-            {/* .RAW branding watermark */}
-            <p className="absolute bottom-3 right-4 text-[10px] font-bold text-white/20 tracking-wide z-10">
-              .RAW
-            </p>
-          </div>
-        </button>
+          {/* Episode title — below the card */}
+          {latestVideo.title && (
+            <div className={isMobile ? "px-4 pt-2" : "mt-3"}>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">
+                Último Episodio
+              </p>
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {latestVideo.title}
+              </p>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Subscriber count + links — both mobile and desktop */}
