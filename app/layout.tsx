@@ -86,6 +86,7 @@ const navLinks = [
   { href: "/schedule", label: "Calendario" },
   { href: "/team", label: "Equipo" },
   { href: "/merch", label: "Merch" },
+  { href: "/upload", label: "Subir" },
 ];
 
 // Podcast structured data (JSON-LD)

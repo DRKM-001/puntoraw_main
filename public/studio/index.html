@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>.RAW Sessions — Live Studio</title>
+		<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%23D6412B'/></svg>" />
+		<link rel="stylesheet" href="./lineawesome/css/line-awesome.min.css" />
+		<link rel="stylesheet" href="./styles.css" />
+	</head>
+	<body>
+		<div id="studio-root" class="studio-shell" data-state="setup">
+
+			<!-- ═══════════ ROOM GATE (login) ═══════════ -->
+			<section class="room-gate" data-view="setup">
+				<form class="room-gate__panel" id="room-form" autocomplete="off">
+					<div class="room-gate__brand">
+						<div class="raw-logo-gate">
+							<span class="raw-dot"></span>
+							<div>
+								<div class="raw-wordmark"><span class="accent">.RAW</span> SESSIONS</div>
+								<div class="raw-sub">LIVE STUDIO</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="gate-episode-config">
+						<label class="gate-field">
+							<span>Episode</span>
+							<input id="episode-number" name="episode" type="text" autocomplete="off" placeholder="EP011" />
+						</label>
+						<label class="gate-field gate-field--wide">
+							<span>Title</span>
+							<input id="episode-title" name="title" autocomplete="off" placeholder="Episode title..." />
+						</label>
+					</div>
+
+					<label class="gate-field">
+						<span>Room name</span>
+						<input id="room-name" name="room" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="raw-sessions" required />
+					</label>
+					<label class="gate-field">
+						<span>Password</span>
+						<input id="room-password" name="password" autocomplete="off" placeholder="optional" />
+					</label>
+
+					<div class="gate-crew">
+						<div class="gate-crew__label">Crew</div>
+						<div class="gate-crew__grid">
+							<div class="crew-chip" data-initials="GA">
+								<span class="crew-chip__dot crew-chip__dot--human"></span>
+								<span>Greg Anthony</span>
+							</div>
+							<div class="crew-chip" data-initials="R">
+								<span class="crew-chip__dot crew-chip__dot--human"></span>
+								<span>Rafa</span>
+							</div>
+							<div class="crew-chip" data-initials="RJ">
+								<span class="crew-chip__dot crew-chip__dot--human"></span>
+								<span>RJ</span>
+							</div>
+							<div class="crew-chip crew-chip--ai" data-initials="MC">
+								<span class="crew-chip__dot crew-chip__dot--ai"></span>
+								<span>Markus <small>AI</small></span>
+							</div>
+						</div>
+					</div>
+
+					<div class="room-gate__actions">
+						<button type="button" id="random-room" class="button button--secondary">Random</button>
+						<button type="submit" class="button button--primary">
+							<span class="raw-dot raw-dot--btn"></span>
+							Enter Studio
+						</button>
+					</div>
+				</form>
+			</section>
+
+			<!-- ═══════════ STUDIO WORKSPACE ═══════════ -->
+			<section class="studio-workspace" data-view="studio" aria-label="Live studio workspace">
+
+				<!-- ── Top Bar ── -->
+				<header class="topbar">
+					<div class="topbar__identity">
+						<div class="raw-logo-small">
+							<span class="raw-dot"></span>
+							<span class="raw-wordmark-sm"><span class="accent">.RAW</span></span>
+						</div>
+						<div>
+							<div class="topbar__title" id="topbar-episode">Live Studio</div>
+							<button type="button" id="room-copy" class="topbar__room" title="Copy the room name"></button>
+						</div>
+					</div>
+					<div class="topbar__status">
+						<span class="status-pill" id="connection-status" data-state="idle">Starting</span>
+						<button type="button" id="refresh-state" class="icon-button" title="Refresh source list" aria-label="Refresh source list"><i class="las la-sync"></i></button>
+					</div>
+				</header>
+
+				<!-- ── Scenes Panel (left) ── -->
+				<aside class="scenes-panel" aria-label="Scenes">
+					<div class="panel-heading">
+						<h2>Scenes</h2>
+						<div class="panel-heading__actions">
+							<button type="button" id="import-template" class="button button--secondary button--compact">Import</button>
+							<button type="button" id="export-template" class="button button--secondary button--compact">Export</button>
+							<button type="button" id="add-scene" class="button button--secondary button--compact" title="Create a scene from the current program">New</button>
+						</div>
+						<input id="template-file" class="hidden" type="file" accept="application/json,.json" />
+					</div>
+					<div id="scene-list" class="scene-list" aria-live="polite"></div>
+
+					<!-- ── Live Transcript (in scenes panel) ── -->
+					<div class="transcript-section">
+						<div class="panel-heading">
+							<h2>Transcript</h2>
+							<div class="panel-heading__actions">
+								<select id="transcript-lang" class="raw-select">
+									<option value="es-MX">es-MX</option>
+									<option value="es-ES">es-ES</option>
+									<option value="en-US">en-US</option>
+								</select>
+								<button type="button" id="transcript-toggle" class="button button--secondary button--compact">Start</button>
+							</div>
+						</div>
+						<div id="transcript-log" class="transcript-log" aria-live="polite">
+							<div class="transcript-empty">Press Start to begin live transcription</div>
+						</div>
+					</div>
+				</aside>
+
+				<!-- ── Main Program Area ── -->
+				<main class="program-panel">
+					<div class="program-toolbar">
+						<div>
+							<div class="program-toolbar__label">Program</div>
+							<label class="scene-name-label" for="active-scene-title">Scene name</label>
+							<input id="active-scene-title" class="scene-name-input" value="Scene" maxlength="48" autocomplete="off" />
+						</div>
+						<div class="program-toolbar__actions">
+							<button type="button" class="icon-button" id="move-scene-up" title="Move scene up" aria-label="Move scene up"><i class="las la-arrow-up"></i></button>
+							<button type="button" class="icon-button" id="move-scene-down" title="Move scene down" aria-label="Move scene down"><i class="las la-arrow-down"></i></button>
+							<button type="button" class="button button--secondary" id="duplicate-scene">Duplicate</button>
+							<button type="button" class="button button--secondary" id="delete-scene">Delete</button>
+							<button type="button" class="button button--primary" id="go-live" title="Apply the selected scene to the program preview and scene links">Update Scene</button>
+						</div>
+					</div>
+
+					<section class="stage-shell">
+						<div class="stage-aspect" id="stage" data-testid="stage-drop-target">
+							<iframe id="director-frame" title="VDO.Ninja program preview" allow="autoplay; camera; microphone; fullscreen; picture-in-picture; display-capture; screen-wake-lock; accelerometer; midi; geolocation; clipboard-write"></iframe>
+							<div id="stage-bg" class="stage-bg"></div>
+							<div id="stage-overlay" class="stage-overlay" aria-label="Layout editor surface"></div>
+							<div class="stage-empty" id="stage-empty">
+								<canvas id="static-canvas" class="static-canvas"></canvas>
+								<div class="stage-empty__text">NO SIGNAL</div>
+							</div>
+						</div>
+						<div class="box-inspector" id="box-inspector" data-empty="true" aria-label="Selected source controls">
+							<div class="box-inspector__summary">
+								<span class="box-inspector__eyebrow">Selected source</span>
+								<strong id="box-inspector-title">No source selected</strong>
+							</div>
+							<div class="box-inspector__actions">
+								<button type="button" class="icon-button" id="box-backward" title="Send backward" aria-label="Send backward"><i class="las la-step-backward"></i></button>
+								<button type="button" class="icon-button" id="box-forward" title="Bring forward" aria-label="Bring forward"><i class="las la-step-forward"></i></button>
+								<button type="button" class="button button--secondary" id="box-fit-toggle">Fit</button>
+								<button type="button" class="button button--secondary" id="box-reset">Reset</button>
+								<button type="button" class="button button--danger" id="box-remove">Remove</button>
+							</div>
+							<div class="box-inspector__fields">
+								<label><span>X</span><input id="box-x" type="number" min="0" max="100" step="0.1" autocomplete="off" /></label>
+								<label><span>Y</span><input id="box-y" type="number" min="0" max="100" step="0.1" autocomplete="off" /></label>
+								<label><span>W</span><input id="box-w" type="number" min="7" max="100" step="0.1" autocomplete="off" /></label>
+								<label><span>H</span><input id="box-h" type="number" min="8" max="100" step="0.1" autocomplete="off" /></label>
+							</div>
+						</div>
+					</section>
+
+					<!-- ── Layout presets ── -->
+					<section class="layout-strip" aria-label="Layout presets">
+						<button type="button" class="layout-preset" data-preset="solo">
+							<span class="preset-icon preset-icon--solo"></span>
+							<span>Solo</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="duo">
+							<span class="preset-icon preset-icon--duo"></span>
+							<span>Side by Side</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="pip">
+							<span class="preset-icon preset-icon--pip"></span>
+							<span>Picture</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="screen">
+							<span class="preset-icon preset-icon--screen"></span>
+							<span>Screen</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="spotlight">
+							<span class="preset-icon preset-icon--spotlight"></span>
+							<span>Spotlight</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="grid">
+							<span class="preset-icon preset-icon--grid"></span>
+							<span>Grid</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="nine">
+							<span class="preset-icon preset-icon--nine"></span>
+							<span>9 Grid</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="rows">
+							<span class="preset-icon preset-icon--rows"></span>
+							<span>Rows</span>
+						</button>
+						<button type="button" class="layout-preset" data-preset="vertical">
+							<span class="preset-icon preset-icon--vertical"></span>
+							<span>Vertical</span>
+						</button>
+					</section>
+				</main>
+
+				<!-- ── Control Panel (right) ── -->
+				<aside class="control-panel" aria-label="Studio controls">
+					<nav class="tabs" aria-label="Control tabs">
+						<button type="button" class="tab-button" data-tab="sources" aria-selected="true">Crew</button>
+						<button type="button" class="tab-button" data-tab="design">Design</button>
+						<button type="button" class="tab-button" data-tab="output">Output</button>
+						<button type="button" class="tab-button" data-tab="stream">Stream</button>
+					</nav>
+
+					<!-- ── Crew (Guests) Tab ── -->
+					<section class="tab-panel" data-panel="sources">
+						<div class="panel-heading">
+							<h2>Crew &amp; Guests</h2>
+							<div class="guest-actions">
+								<button type="button" id="toggle-join-sound" class="button button--secondary button--compact" aria-pressed="false">Sound Off</button>
+								<button type="button" id="add-samples" class="button button--secondary button--compact">Samples</button>
+								<button type="button" id="add-placeholder" class="icon-button" title="Add guest slot" aria-label="Add guest slot"><i class="las la-plus-square"></i></button>
+							</div>
+						</div>
+
+						<!-- Markus AI card -->
+						<div class="crew-card crew-card--ai">
+							<div class="crew-card__header">
+								<div class="crew-card__avatar crew-card__avatar--ai">MC</div>
+								<div class="crew-card__info">
+									<strong>Markus</strong>
+									<span class="crew-card__role">AI Crew · <span class="ai-status" id="markus-status">Standby</span></span>
+								</div>
+								<span class="crew-card__badge">AI</span>
+							</div>
+						</div>
+
+						<label class="field-row field-row--stacked invite-card">
+							<span>Guest invite</span>
+							<div class="copy-row">
+								<input id="invite-link" readonly />
+								<button type="button" class="icon-button" id="copy-invite" title="Copy invite link" aria-label="Copy invite link"><i class="las la-copy"></i></button>
+							</div>
+						</label>
+						<label class="field-row field-row--stacked password-card" id="password-card" data-empty="true">
+							<span>Room password</span>
+							<div class="copy-row">
+								<input id="room-password-display" readonly />
+								<button type="button" class="icon-button" id="copy-password" title="Copy room password" aria-label="Copy room password"><i class="las la-key"></i></button>
+							</div>
+						</label>
+						<div id="source-list" class="source-list" aria-live="polite"></div>
+					</section>
+
+					<!-- ── Design Tab ── -->
+					<section class="tab-panel hidden" data-panel="design">
+						<div class="panel-heading">
+							<h2>Design</h2>
+						</div>
+						<label class="field-row">
+							<span>Preview background</span>
+							<input type="color" id="brand-background" value="#0d0c0b" autocomplete="off" />
+						</label>
+						<label class="field-row">
+							<span>Corner radius</span>
+							<input type="range" id="brand-radius" min="0" max="32" value="10" />
+						</label>
+						<label class="check-row">
+							<input type="checkbox" id="brand-labels" checked autocomplete="off" />
+							<span>Show editor labels</span>
+						</label>
+					</section>
+
+					<!-- ── Output Tab ── -->
+					<section class="tab-panel hidden" data-panel="output">
+						<div class="panel-heading">
+							<h2>Output</h2>
+						</div>
+						<div class="output-status" id="output-status" data-state="idle">
+							<div class="output-status__label">Output state</div>
+							<div class="output-status__value">No output window opened</div>
+						</div>
+						<label class="field-row field-row--stacked">
+							<span>Scene link</span>
+							<div class="copy-row">
+								<input id="scene-link" readonly />
+								<button type="button" class="icon-button" id="copy-scene" title="Copy scene link" aria-label="Copy scene link"><i class="las la-copy"></i></button>
+							</div>
+						</label>
+						<label class="field-row field-row--stacked">
+							<span>WHIP endpoint</span>
+							<input id="whip-endpoint" autocomplete="off" placeholder="https://example.com/whip/..." />
+						</label>
+						<div class="output-actions">
+							<button type="button" class="button button--secondary" id="open-scene">Open Scene Link</button>
+							<button type="button" class="button button--secondary" id="record-scene">Open Recorder</button>
+							<button type="button" class="button button--secondary" id="open-meshcast">Open Meshcast</button>
+							<button type="button" class="button button--primary" id="publish-whip">Open WHIP Publisher</button>
+						</div>
+					</section>
+
+					<!-- ── Stream Tab (OBS Integration) ── -->
+					<section class="tab-panel hidden" data-panel="stream">
+						<div class="panel-heading">
+							<h2>OBS Setup</h2>
+						</div>
+						<div class="obs-guide">
+							<p class="obs-guide__intro">Add these as <strong>Browser Sources</strong> in OBS (1920×1080). The studio composes the feeds — OBS captures and streams to YouTube.</p>
+
+							<div class="obs-link-card">
+								<div class="obs-link-card__label">
+									<i class="las la-user"></i>
+									Active Speaker (Solo)
+								</div>
+								<div class="obs-link-card__desc">Auto-switches to whoever is talking. 2s settle delay.</div>
+								<div class="copy-row">
+									<input id="obs-active-solo" readonly class="obs-url" />
+									<button type="button" class="icon-button obs-copy" data-target="obs-active-solo" title="Copy"><i class="las la-copy"></i></button>
+								</div>
+							</div>
+
+							<div class="obs-link-card">
+								<div class="obs-link-card__label">
+									<i class="las la-th-large"></i>
+									Grid View
+								</div>
+								<div class="obs-link-card__desc">All guests visible in a grid layout.</div>
+								<div class="copy-row">
+									<input id="obs-grid" readonly class="obs-url" />
+									<button type="button" class="icon-button obs-copy" data-target="obs-grid" title="Copy"><i class="las la-copy"></i></button>
+								</div>
+							</div>
+
+							<div class="obs-link-card">
+								<div class="obs-link-card__label">
+									<i class="las la-star"></i>
+									Spotlight
+								</div>
+								<div class="obs-link-card__desc">Grid with active speaker enlarged.</div>
+								<div class="copy-row">
+									<input id="obs-highlight" readonly class="obs-url" />
+									<button type="button" class="icon-button obs-copy" data-target="obs-highlight" title="Copy"><i class="las la-copy"></i></button>
+								</div>
+							</div>
+						</div>
+
+						<div class="stream-note">
+							<i class="las la-info-circle"></i>
+							<span>Mute audio on these Browser Sources in OBS. Keep your per-person audio channels for levels control.</span>
+						</div>
+					</section>
+				</aside>
+			</section>
+		</div>
+
+		<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+		<!-- ── TV Static effect for empty stage ── -->
+		<script>
+		(function(){
+			const c = document.getElementById('static-canvas');
+			if (!c) return;
+			const ctx = c.getContext('2d');
+			let raf;
+			function resize() {
+				const r = c.parentElement.getBoundingClientRect();
+				c.width = Math.round(r.width / 4);
+				c.height = Math.round(r.height / 4);
+			}
+			function draw() {
+				const w = c.width, h = c.height;
+				const img = ctx.createImageData(w, h);
+				const d = img.data;
+				for (let i = 0; i < d.length; i += 4) {
+					const v = Math.random() * 40 | 0;
+					d[i] = d[i+1] = d[i+2] = v;
+					d[i+3] = 255;
+				}
+				ctx.putImageData(img, 0, 0);
+				raf = requestAnimationFrame(draw);
+			}
+			resize();
+			draw();
+			window.addEventListener('resize', resize);
+			// Stop static when stage gets content
+			const obs = new MutationObserver(() => {
+				const empty = document.getElementById('stage-empty');
+				if (empty && empty.classList.contains('hidden')) {
+					cancelAnimationFrame(raf);
+				} else if (empty && !empty.classList.contains('hidden')) {
+					draw();
+				}
+			});
+			const root = document.getElementById('studio-root');
+			if (root) obs.observe(root, { attributes: true, subtree: true, attributeFilter: ['class'] });
+		})();
+		</script>
+
+		<!-- ── Live Transcript (Web Speech API) ── -->
+		<script>
+		(function(){
+			const btn = document.getElementById('transcript-toggle');
+			const log = document.getElementById('transcript-log');
+			const lang = document.getElementById('transcript-lang');
+			if (!btn || !log || !lang) return;
+
+			let recognition = null;
+			let running = false;
+
+			function start() {
+				const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+				if (!SR) { log.innerHTML = '<div class="transcript-empty">Speech API not supported</div>'; return; }
+				recognition = new SR();
+				recognition.continuous = true;
+				recognition.interimResults = true;
+				recognition.lang = lang.value;
+				recognition.onresult = function(e) {
+					const empty = log.querySelector('.transcript-empty');
+					if (empty) empty.remove();
+					for (let i = e.resultIndex; i < e.results.length; i++) {
+						const t = e.results[i][0].transcript;
+						if (e.results[i].isFinal) {
+							const line = document.createElement('div');
+							line.className = 'transcript-line';
+							const ts = new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
+							line.innerHTML = '<span class="transcript-ts">' + ts + '</span> ' + t;
+							log.appendChild(line);
+							log.scrollTop = log.scrollHeight;
+						}
+					}
+				};
+				recognition.onend = function() {
+					if (running) recognition.start(); // auto-restart
+				};
+				recognition.onerror = function(e) {
+					if (e.error !== 'no-speech' && e.error !== 'aborted') {
+						const line = document.createElement('div');
+						line.className = 'transcript-line transcript-line--error';
+						line.textContent = '⚠ ' + e.error;
+						log.appendChild(line);
+					}
+				};
+				recognition.start();
+				running = true;
+				btn.textContent = 'Stop';
+				btn.classList.add('button--danger-soft');
+			}
+
+			function stop() {
+				running = false;
+				if (recognition) recognition.stop();
+				btn.textContent = 'Start';
+				btn.classList.remove('button--danger-soft');
+			}
+
+			btn.addEventListener('click', function() {
+				running ? stop() : start();
+			});
+		})();
+		</script>
+
+		<!-- ── Episode title sync ── -->
+		<script>
+		(function(){
+			const epNum = document.getElementById('episode-number');
+			const epTitle = document.getElementById('episode-title');
+			const topbar = document.getElementById('topbar-episode');
+			const ytTitle = document.getElementById('yt-stream-title');
+			const form = document.getElementById('room-form');
+			if (!form || !topbar) return;
+			form.addEventListener('submit', function() {
+				const num = epNum ? epNum.value.trim() : '';
+				const title = epTitle ? epTitle.value.trim() : '';
+				if (num || title) {
+					topbar.textContent = [num, title].filter(Boolean).join(' — ');
+					if (ytTitle && !ytTitle.value) {
+						ytTitle.value = [num, title].filter(Boolean).join(' — ');
+					}
+				}
+			});
+		})();
+		</script>
+
+		<!-- ── OBS URL integration ── -->
+		<script>
+		(function(){
+			// Generate OBS URLs when room is set
+			function updateOBSUrls() {
+				const roomEl = document.getElementById('room-copy');
+				if (!roomEl) return;
+				const room = roomEl.textContent || roomEl.innerText || '';
+				if (!room) return;
+
+				const base = 'https://vdo.ninja/?scene=0&room=' + encodeURIComponent(room);
+				const pw = document.getElementById('room-password-display');
+				const pwStr = (pw && pw.value) ? '&password=' + encodeURIComponent(pw.value) : '';
+
+				const solo = document.getElementById('obs-active-solo');
+				const grid = document.getElementById('obs-grid');
+				const highlight = document.getElementById('obs-highlight');
+
+				if (solo) solo.value = base + '&activespeaker=1&activespeakerdelay=2000&cleanoutput&noaudio' + pwStr;
+				if (grid) grid.value = base + '&cleanoutput&noaudio' + pwStr;
+				if (highlight) highlight.value = base + '&activehighlight=2&cleanoutput&noaudio' + pwStr;
+			}
+
+			// Watch for room name changes
+			const obs = new MutationObserver(updateOBSUrls);
+			const roomCopy = document.getElementById('room-copy');
+			if (roomCopy) obs.observe(roomCopy, { childList: true, characterData: true, subtree: true });
+
+			// Also update on tab click
+			const streamTab = document.querySelector('[data-tab="stream"]');
+			if (streamTab) streamTab.addEventListener('click', function() {
+				setTimeout(updateOBSUrls, 100);
+			});
+
+			// Copy buttons for OBS URLs
+			document.querySelectorAll('.obs-copy').forEach(function(btn) {
+				btn.addEventListener('click', function() {
+					const target = document.getElementById(btn.dataset.target);
+					if (target && target.value) {
+						navigator.clipboard.writeText(target.value);
+						const icon = btn.querySelector('i');
+						icon.className = 'las la-check';
+						setTimeout(function() { icon.className = 'las la-copy'; }, 1500);
+					}
+				});
+			});
+		})();
+		</script>
+
+		<script type="module" src="./app.js"></script>
+	</body>
+</html>

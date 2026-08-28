@@ -1,0 +1,18 @@
+# Cloudflare Pages project config for puntoraw.org
+# The static site is built by Next.js (output: "export") → /out
+# Functions in /functions are auto-deployed as Cloudflare Pages Functions
+
+name = "puntoraw-org"
+compatibility_date = "2024-09-23"
+
+# D1 Database — episode metadata
+[[d1_databases]]
+binding = "DB"
+database_name = "puntoraw-episodes"
+database_id = "" # Fill in after running: wrangler d1 create puntoraw-episodes
+
+# R2 Bucket — audio file storage
+[[r2_buckets]]
+binding = "AUDIO_BUCKET"
+bucket_name = "puntoraw-audio"
+# Create with: wrangler r2 bucket create puntoraw-audio
