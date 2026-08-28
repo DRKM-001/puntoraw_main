@@ -9,7 +9,7 @@ compatibility_date = "2024-09-23"
 [[d1_databases]]
 binding = "DB"
 database_name = "puntoraw-episodes"
-database_id = "" # Fill in after running: wrangler d1 create puntoraw-episodes
+database_id = "0010885f-0c5b-4a9d-924e-df663e8f6e5e"
 
 # R2 Bucket — audio file storage
 [[r2_buckets]]
