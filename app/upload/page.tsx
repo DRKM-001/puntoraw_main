@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type FormEvent, type DragEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent, type DragEvent } from "react";
 
 interface UploadForm {
   title: string;
@@ -26,11 +26,42 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [lastEpisode, setLastEpisode] = useState<string | null>(null);
   const [result, setResult] = useState<{
     ok: boolean;
     message: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-fill season/episode from the latest upload
+  useEffect(() => {
+    fetch("/api/episodes/next")
+      .then((r) => r.json())
+      .then((data) => {
+        setForm((prev) => ({
+          ...prev,
+          season: String(data.season),
+          episodeNumber: String(data.episodeNumber),
+        }));
+        setLastEpisode(data.lastEpisode || null);
+      })
+      .catch(() => {
+        // Fallback — leave fields empty for manual entry
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // When user changes the season, reset episode to 1
+  const handleSeasonChange = (newSeason: string) => {
+    const currentSeason = form.season;
+    setForm({
+      ...form,
+      season: newSeason,
+      // Reset episode to 1 only if the season actually changed
+      episodeNumber: newSeason !== currentSeason ? "1" : form.episodeNumber,
+    });
+  };
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -97,8 +128,23 @@ export default function UploadPage() {
       }
 
       setResult({ ok: true, message: "Episode uploaded and published successfully!" });
-      setForm({ title: "", description: "", speaker: "", season: "", episodeNumber: "", spotifyId: "" });
       setFile(null);
+
+      // Re-fetch next episode number so it auto-increments for the next upload
+      const nextRes = await fetch("/api/episodes/next").then((r) => r.json()).catch(() => null);
+      if (nextRes) {
+        setForm({
+          title: "",
+          description: "",
+          speaker: "",
+          season: String(nextRes.season),
+          episodeNumber: String(nextRes.episodeNumber),
+          spotifyId: "",
+        });
+        setLastEpisode(nextRes.lastEpisode || null);
+      } else {
+        setForm({ title: "", description: "", speaker: "", season: "", episodeNumber: "", spotifyId: "" });
+      }
     } catch (err) {
       setResult({
         ok: false,
@@ -207,6 +253,14 @@ export default function UploadPage() {
         </div>
 
         {/* Season & Episode Number */}
+        {lastEpisode && (
+          <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Último episodio: <span className="font-semibold text-gray-700">{lastEpisode}</span>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="season" className="block text-sm font-semibold text-gray-900 mb-2">
@@ -218,7 +272,7 @@ export default function UploadPage() {
               min="1"
               placeholder="2"
               value={form.season}
-              onChange={(e) => setForm({ ...form, season: e.target.value })}
+              onChange={(e) => handleSeasonChange(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition"
             />
           </div>
