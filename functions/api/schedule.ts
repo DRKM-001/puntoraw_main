@@ -6,19 +6,9 @@ interface Env {
 const CALENDAR_ID =
   "f8e3ac2a75414861b46978421e780c830eec343d3cfb74b7b5fe75e750d53e1f@group.calendar.google.com";
 
-const GCAL_URL = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`;
-
-function jsonResponse(data: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      ...extraHeaders,
-    },
-  });
-}
-
 export const onRequestGet: PagesFunction<Env> = async (context) => {
+  const headers = { "Content-Type": "application/json" };
+
   try {
     const url = new URL(context.request.url);
     const showPast = url.searchParams.get("past") === "true";
@@ -26,7 +16,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const apiKey = context.env.GOOGLE_CALENDAR_API_KEY;
 
     if (!apiKey) {
-      return jsonResponse({ error: "Google Calendar API key not configured" }, 500);
+      return new Response(
+        JSON.stringify({ error: "Google Calendar API key not configured" }),
+        { status: 500, headers }
+      );
     }
 
     const now = new Date();
@@ -42,15 +35,19 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       params.set("timeMin", thirtyDaysAgo.toISOString());
     }
 
-    const fetchUrl = `${GCAL_URL}?${params.toString()}`;
-    const res = await fetch(fetchUrl);
+    const gcalUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?${params.toString()}`;
+
+    const res = await fetch(gcalUrl);
     const responseText = await res.text();
 
     if (!res.ok) {
-      console.error("Google Calendar API error:", res.status, responseText);
-      return jsonResponse(
-        { error: "Failed to fetch calendar events", detail: responseText },
-        502
+      return new Response(
+        JSON.stringify({
+          error: "Failed to fetch calendar events",
+          status: res.status,
+          detail: responseText.substring(0, 500),
+        }),
+        { status: 502, headers }
       );
     }
 
@@ -58,7 +55,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     try {
       data = JSON.parse(responseText);
     } catch {
-      return jsonResponse({ error: "Invalid response from Google Calendar" }, 502);
+      return new Response(
+        JSON.stringify({ error: "Invalid response from Google Calendar" }),
+        { status: 502, headers }
+      );
     }
 
     const events = (data.items || [])
@@ -82,14 +82,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         };
       });
 
-    return jsonResponse(
-      { events },
-      200,
-      { "Cache-Control": "public, max-age=300, s-maxage=300" }
+    return new Response(
+      JSON.stringify({ events }),
+      {
+        status: 200,
+        headers: {
+          ...headers,
+          "Cache-Control": "public, max-age=300, s-maxage=300",
+        },
+      }
     );
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("Schedule fetch error:", message);
-    return jsonResponse({ error: "Failed to fetch schedule", detail: message }, 500);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(
+      JSON.stringify({ error: "Failed to fetch schedule", detail: message }),
+      { status: 500, headers }
+    );
   }
 };
