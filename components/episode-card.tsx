@@ -9,8 +9,6 @@ interface EpisodeCardProps {
   episodeNumber: number;
   imageUrl?: string;
   slug: string;
-  duration?: string;
-  season?: number;
 }
 
 export function EpisodeCard({
@@ -21,8 +19,6 @@ export function EpisodeCard({
   episodeNumber,
   imageUrl,
   slug,
-  duration,
-  season,
 }: EpisodeCardProps) {
   const formattedDate = new Date(date).toLocaleDateString("es-419", {
     year: "numeric",
@@ -32,10 +28,10 @@ export function EpisodeCard({
 
   return (
     <Link href={`/episodes/${slug}`}>
-      <article className="group border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all h-full flex flex-col cursor-pointer">
+      <article className="group border border-gray-100 rounded-xl overflow-hidden hover:border-gray-200 transition bg-gray-50/50 hover:bg-gray-50 h-full flex flex-col cursor-pointer">
         {/* Image */}
         {imageUrl && (
-          <div className="relative w-full h-44 bg-gray-100 overflow-hidden">
+          <div className="relative w-full h-40 bg-gray-100 overflow-hidden">
             <Image
               src={imageUrl}
               alt={title}
@@ -46,10 +42,10 @@ export function EpisodeCard({
         )}
 
         {/* Content */}
-        <div className="p-5 flex flex-col flex-1">
+        <div className="p-6 flex flex-col flex-1">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              {season ? `T${season} · ` : ""}Ep {episodeNumber}
+            <span className="text-xs font-semibold text-red-600 uppercase tracking-wide">
+              Episodio {episodeNumber}
             </span>
             <span className="text-xs text-gray-400">{formattedDate}</span>
           </div>
@@ -58,22 +54,15 @@ export function EpisodeCard({
             {title}
           </h3>
 
-          <p className="text-sm text-gray-500 mb-3">{speaker}</p>
+          <p className="text-sm text-gray-500 mb-4">{speaker}</p>
 
-          <p className="text-sm text-gray-600 mb-4 flex-1 line-clamp-3 leading-relaxed">
+          <p className="text-sm text-gray-600 mb-4 flex-1 line-clamp-3">
             {summary}
           </p>
 
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-red-600 group-hover:gap-2 transition-all flex items-center">
-              Escuchar
-              <span className="ml-1 group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </span>
-            {duration && (
-              <span className="text-xs text-gray-400">{duration}</span>
-            )}
+          <div className="flex items-center text-sm font-medium text-red-600 group-hover:gap-2 transition">
+            Escuchar
+            <span className="ml-1 group-hover:translate-x-1 transition">→</span>
           </div>
         </div>
       </article>
