@@ -1,26 +1,32 @@
 // GET /api/schedule — fetch upcoming events from the public Punto Raw Google Calendar
+interface Env {
+  GOOGLE_CALENDAR_API_KEY: string;
+}
+
 const CALENDAR_ID =
   "f8e3ac2a75414861b46978421e780c830eec343d3cfb74b7b5fe75e750d53e1f@group.calendar.google.com";
 
-// Google Calendar public iCal → JSON proxy
-// Public calendars can be fetched via the Google Calendar API with just an API key,
-// or we can use the public iCal feed and parse it. We'll use the public JSON feed.
 const GCAL_URL = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`;
 
-export const onRequestGet: PagesFunction = async (context) => {
+function jsonResponse(data: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...extraHeaders,
+    },
+  });
+}
+
+export const onRequestGet: PagesFunction<Env> = async (context) => {
   try {
     const url = new URL(context.request.url);
     const showPast = url.searchParams.get("past") === "true";
 
-    // We need an API key for the Google Calendar API.
-    // Store it as an environment variable in Cloudflare Pages settings.
-    const apiKey = (context.env as Record<string, string>).GOOGLE_CALENDAR_API_KEY;
+    const apiKey = context.env.GOOGLE_CALENDAR_API_KEY;
 
     if (!apiKey) {
-      return Response.json(
-        { error: "Google Calendar API key not configured" },
-        { status: 500 }
-      );
+      return jsonResponse({ error: "Google Calendar API key not configured" }, 500);
     }
 
     const now = new Date();
@@ -31,46 +37,42 @@ export const onRequestGet: PagesFunction = async (context) => {
       maxResults: "50",
     });
 
-    // Only show future events by default
     if (!showPast) {
-      // Show events from 30 days ago (to include recently published ones)
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       params.set("timeMin", thirtyDaysAgo.toISOString());
     }
 
-    const res = await fetch(`${GCAL_URL}?${params.toString()}`);
+    const fetchUrl = `${GCAL_URL}?${params.toString()}`;
+    const res = await fetch(fetchUrl);
+    const responseText = await res.text();
 
     if (!res.ok) {
-      const errText = await res.text();
-      console.error("Google Calendar API error:", res.status, errText);
-      return Response.json(
-        { error: "Failed to fetch calendar events" },
-        { status: 502 }
+      console.error("Google Calendar API error:", res.status, responseText);
+      return jsonResponse(
+        { error: "Failed to fetch calendar events", detail: responseText },
+        502
       );
     }
 
-    const data = await res.json<{
-      items?: Array<{
-        id: string;
-        summary?: string;
-        description?: string;
-        start?: { dateTime?: string; date?: string };
-        end?: { dateTime?: string; date?: string };
-        location?: string;
-        status?: string;
-      }>;
-    }>();
+    let data: { items?: Array<Record<string, unknown>> };
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      return jsonResponse({ error: "Invalid response from Google Calendar" }, 502);
+    }
 
     const events = (data.items || [])
-      .filter((ev) => ev.status !== "cancelled")
-      .map((ev) => {
-        const startRaw = ev.start?.dateTime || ev.start?.date || "";
-        const endRaw = ev.end?.dateTime || ev.end?.date || "";
+      .filter((ev: Record<string, unknown>) => ev.status !== "cancelled")
+      .map((ev: Record<string, unknown>) => {
+        const start = ev.start as { dateTime?: string; date?: string } | undefined;
+        const end = ev.end as { dateTime?: string; date?: string } | undefined;
+        const startRaw = start?.dateTime || start?.date || "";
+        const endRaw = end?.dateTime || end?.date || "";
         const startDate = new Date(startRaw);
         const isPast = startDate < now;
 
         return {
-          id: ev.id,
+          id: ev.id || "",
           title: ev.summary || "Sin título",
           description: ev.description || "",
           start: startRaw,
@@ -80,19 +82,14 @@ export const onRequestGet: PagesFunction = async (context) => {
         };
       });
 
-    return Response.json(
+    return jsonResponse(
       { events },
-      {
-        headers: {
-          "Cache-Control": "public, max-age=300, s-maxage=300",
-        },
-      }
+      200,
+      { "Cache-Control": "public, max-age=300, s-maxage=300" }
     );
-  } catch (err) {
-    console.error("Schedule fetch error:", err);
-    return Response.json(
-      { error: "Failed to fetch schedule" },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Schedule fetch error:", message);
+    return jsonResponse({ error: "Failed to fetch schedule", detail: message }, 500);
   }
 };
