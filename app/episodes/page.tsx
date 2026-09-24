@@ -50,7 +50,8 @@ export default function EpisodesPage() {
 
   const formatDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleDateString("es-419", {
+      // Noon local time so "2026-08-29" doesn't display as Aug 28 in US timezones
+      return new Date(`${dateStr.slice(0, 10)}T12:00:00`).toLocaleDateString("es-419", {
         year: "numeric",
         month: "short",
         day: "numeric",

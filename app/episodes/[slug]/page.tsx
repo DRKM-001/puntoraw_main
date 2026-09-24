@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { getPostForEpisode } from "@/lib/blog";
+import { getAllPosts } from "@/lib/blog";
+import { EpisodeDetail, type EpisodeData, type RelatedPost } from "@/components/episode-detail";
 
 interface EpisodePageProps {
   params: Promise<{
@@ -9,21 +8,10 @@ interface EpisodePageProps {
   }>;
 }
 
-interface EpisodeData {
-  episodeNumber: number;
-  season: number;
-  seasonEpisode: number;
-  title: string;
-  speaker: string;
-  date: string;
-  duration: string;
-  summary: string;
-  topics: string[];
-  quote?: string;
-  spotifyId?: string;
-}
 
-// All episodes data
+// Episodes baked in at build time (SEO + instant render).
+// Any episode added later through /upload (D1) still works: see components/episode-detail.tsx
+// and functions/episodes/[slug].ts, which serves the "pendiente" shell for unknown slugs.
 const episodes: Record<string, EpisodeData> = {
   // Season 2
   "s2-e4-algo-tiene-que-morir": {
@@ -196,20 +184,22 @@ const episodes: Record<string, EpisodeData> = {
   },
 };
 
+/** Placeholder page that renders any episode from D1 on the client. */
+export const SHELL_SLUG = "pendiente";
+
 export async function generateStaticParams() {
-  return Object.keys(episodes).map((slug) => ({ slug }));
+  return [...Object.keys(episodes), SHELL_SLUG].map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: EpisodePageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: EpisodePageProps): Promise<Metadata> {
   const { slug } = await params;
   const episode = episodes[slug];
-  if (!episode) return { title: "Episodio No Encontrado" };
+  if (!episode) return { title: "Episodio" };
 
   return {
     title: `${episode.title} — T${episode.season} Ep${episode.seasonEpisode}`,
     description: episode.summary,
+    alternates: { canonical: `/episodes/${slug}` },
     openGraph: {
       title: `${episode.title} | .RAW Sessions`,
       description: episode.summary,
@@ -220,127 +210,18 @@ export async function generateMetadata({
 
 export default async function EpisodePage({ params }: EpisodePageProps) {
   const { slug } = await params;
-  const episode = episodes[slug];
 
-  if (!episode) {
-    notFound();
-  }
+  // Blog posts known at build time — matched to episodes by season + episode number
+  const posts: RelatedPost[] = getAllPosts()
+    .filter((p) => p.season && p.seasonEpisode)
+    .map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      season: p.season!,
+      seasonEpisode: p.seasonEpisode!,
+      readingMinutes: p.readingMinutes,
+      youtubeId: p.youtubeId,
+    }));
 
-  const blogPost = getPostForEpisode(slug);
-
-  const formattedDate = new Date(episode.date).toLocaleDateString("es-419", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  return (
-    <div>
-      {/* Header */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-12">
-        <Link
-          href="/episodes"
-          className="text-gray-400 hover:text-gray-900 transition text-sm mb-8 inline-flex items-center py-2"
-        >
-          ← Volver a Episodios
-        </Link>
-
-        <div className="mb-8">
-          <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3">
-            Temporada {episode.season} · Episodio {episode.seasonEpisode}
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {episode.title}
-          </h1>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-gray-500">
-            <p className="text-lg font-medium text-gray-700">
-              {episode.speaker}
-            </p>
-            <span className="hidden sm:inline text-gray-300">·</span>
-            <p>{formattedDate}</p>
-            <span className="hidden sm:inline text-gray-300">·</span>
-            <p>{episode.duration}</p>
-          </div>
-        </div>
-
-        {/* Spotify Embedded Player */}
-        {episode.spotifyId && (
-          <div className="mb-12">
-            <iframe
-              src={`https://open.spotify.com/embed/episode/${episode.spotifyId}?utm_source=generator`}
-              width="100%"
-              height="152"
-              frameBorder="0"
-              allowFullScreen
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy"
-              className="rounded-xl"
-            />
-          </div>
-        )}
-      </section>
-
-      {/* Content */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
-        {/* Summary */}
-        <p className="text-lg text-gray-600 leading-relaxed mb-10">
-          {episode.summary}
-        </p>
-
-        {/* Topics */}
-        {episode.topics.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Temas Principales
-            </h2>
-            <ul className="space-y-2">
-              {episode.topics.map((topic, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-gray-600">
-                  <span className="text-red-500 mt-1 text-sm">●</span>
-                  {topic}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Quote */}
-        {episode.quote && (
-          <blockquote className="border-l-4 border-red-500 pl-6 py-2 my-10">
-            <p className="text-xl italic text-gray-700 leading-relaxed">
-              &ldquo;{episode.quote}&rdquo;
-            </p>
-          </blockquote>
-        )}
-
-        {/* Blog summary link */}
-        {blogPost && (
-          <Link
-            href={`/blog/${blogPost.slug}`}
-            className="group flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 transition-all p-5 sm:p-6"
-          >
-            <div>
-              <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-1">
-                Lee el resumen completo
-              </p>
-              <p className="font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
-                {blogPost.title} — {blogPost.readingMinutes} min de lectura
-              </p>
-            </div>
-            <span className="text-red-600 text-xl group-hover:translate-x-1 transition-transform">→</span>
-          </Link>
-        )}
-
-        {/* Navigation */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <Link
-            href="/episodes"
-            className="text-sm font-medium text-red-600 hover:text-red-700 transition"
-          >
-            ← Ver todos los episodios
-          </Link>
-        </div>
-      </section>
-    </div>
-  );
+  return <EpisodeDetail initial={episodes[slug] ?? null} posts={posts} isShell={slug === SHELL_SLUG} />;
 }
