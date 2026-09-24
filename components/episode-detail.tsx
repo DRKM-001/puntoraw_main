@@ -15,6 +15,7 @@ export interface EpisodeData {
   topics: string[];
   quote?: string;
   spotifyId?: string;
+  audioUrl?: string;
 }
 
 export interface RelatedPost {
@@ -24,6 +25,8 @@ export interface RelatedPost {
   seasonEpisode: number;
   readingMinutes: number;
   youtubeId?: string;
+  spotifyId?: string;
+  excerpt?: string;
 }
 
 /** Row shape returned by /api/episodes/[slug] (D1) */
@@ -40,6 +43,7 @@ interface ApiEpisode {
   topics: string[];
   quote: string | null;
   spotify_id: string | null;
+  audio_url?: string | null;
 }
 
 function fromApi(e: ApiEpisode): EpisodeData {
@@ -55,6 +59,7 @@ function fromApi(e: ApiEpisode): EpisodeData {
     topics: e.topics ?? [],
     quote: e.quote ?? undefined,
     spotifyId: e.spotify_id || undefined,
+    audioUrl: e.audio_url || undefined,
   };
 }
 
@@ -134,6 +139,9 @@ export function EpisodeDetail({
   }
 
   const post = posts.find((p) => p.season === episode.season && p.seasonEpisode === episode.seasonEpisode);
+  // Spotify ID: from D1, or from the matching blog post's frontmatter
+  const spotifyId = episode.spotifyId || post?.spotifyId;
+  const summary = episode.summary || post?.excerpt || "";
 
   return (
     <div>
@@ -179,10 +187,10 @@ export function EpisodeDetail({
         )}
 
         {/* Spotify */}
-        {episode.spotifyId && (
+        {spotifyId && (
           <div className="mb-12">
             <iframe
-              src={`https://open.spotify.com/embed/episode/${episode.spotifyId}?utm_source=generator`}
+              src={`https://open.spotify.com/embed/episode/${spotifyId}?utm_source=generator`}
               width="100%"
               height="152"
               allowFullScreen
@@ -193,13 +201,21 @@ export function EpisodeDetail({
             />
           </div>
         )}
+
+        {/* Audio file from the podcast feed — when there's no Spotify ID yet */}
+        {!spotifyId && episode.audioUrl && (
+          <div className="mb-12 rounded-xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Escuchar episodio</p>
+            <audio controls preload="none" src={episode.audioUrl} className="w-full">
+              <a href={episode.audioUrl}>Descargar audio</a>
+            </audio>
+          </div>
+        )}
       </section>
 
       {/* Content */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
-        {episode.summary && (
-          <p className="text-lg text-gray-600 leading-relaxed mb-10">{episode.summary}</p>
-        )}
+        {summary && <p className="text-lg text-gray-600 leading-relaxed mb-10">{summary}</p>}
 
         {episode.topics.length > 0 && (
           <div className="mb-10">

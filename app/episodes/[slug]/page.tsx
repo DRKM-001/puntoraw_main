@@ -221,6 +221,8 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
       seasonEpisode: p.seasonEpisode!,
       readingMinutes: p.readingMinutes,
       youtubeId: p.youtubeId,
+      spotifyId: p.spotifyId,
+      excerpt: p.excerpt,
     }));
 
   return <EpisodeDetail initial={episodes[slug] ?? null} posts={posts} isShell={slug === SHELL_SLUG} />;
