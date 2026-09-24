@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { LivestreamSection } from "@/components/livestream-section";
+import { getLatestVideo } from "@/lib/blog";
 
 export default function Home() {
+  const fallbackVideo = getLatestVideo();
+
   return (
     <div>
       {/* Hero — YouTube-style on mobile, two-column on desktop */}
@@ -23,7 +26,7 @@ export default function Home() {
         </div>
 
         {/* Video — full bleed */}
-        <LivestreamSection variant="mobile" />
+        <LivestreamSection variant="mobile" fallbackVideo={fallbackVideo} />
       </section>
 
       {/* Desktop hero: original two-column layout */}
@@ -65,7 +68,7 @@ export default function Home() {
 
             {/* Right: Livestream / Latest Episode */}
             <div className="col-span-7">
-              <LivestreamSection variant="desktop" />
+              <LivestreamSection variant="desktop" fallbackVideo={fallbackVideo} />
             </div>
           </div>
         </div>

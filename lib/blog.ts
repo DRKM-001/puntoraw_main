@@ -15,6 +15,8 @@ export interface PostFrontmatter {
   season?: number;
   seasonEpisode?: number;
   spotifyId?: string;
+  /** YouTube video ID (the part after watch?v=) — embeds the video and feeds the homepage */
+  youtubeId?: string;
   /** e.g. "1h 36min" */
   duration?: string;
   /** Who led the session ("Sesión dirigida por") */
@@ -111,4 +113,14 @@ export function formatDate(date: string, month: "long" | "short" = "long") {
 export function episodeCode(season?: number, seasonEpisode?: number) {
   if (!season || !seasonEpisode) return null;
   return `S${String(season).padStart(2, "0")}//EP${String(seasonEpisode).padStart(3, "0")}`;
+}
+
+export function youtubeThumb(id: string, quality: "maxresdefault" | "hqdefault" = "maxresdefault") {
+  return `https://i.ytimg.com/vi/${id}/${quality}.jpg`;
+}
+
+/** Newest published post that has a YouTube video — used as the homepage fallback. */
+export function getLatestVideo(): { id: string; title: string } | null {
+  const p = getAllPosts().find((post) => post.youtubeId);
+  return p?.youtubeId ? { id: p.youtubeId, title: p.title } : null;
 }

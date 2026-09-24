@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 
 interface LivestreamSectionProps {
   variant: "mobile" | "desktop";
+  /** Shown immediately and kept if the YouTube API returns nothing (from the newest blog post with a youtubeId) */
+  fallbackVideo?: { id: string; title: string } | null;
 }
 
 interface VideoData {
@@ -28,9 +30,17 @@ async function getJson<T>(url: string): Promise<T | null> {
   }
 }
 
-export function LivestreamSection({ variant }: LivestreamSectionProps) {
-  const [video, setVideo] = useState<VideoData | null>(null);
-  const [status, setStatus] = useState<Status>("loading");
+export function LivestreamSection({ variant, fallbackVideo }: LivestreamSectionProps) {
+  const initial: VideoData | null = fallbackVideo
+    ? {
+        id: fallbackVideo.id,
+        title: fallbackVideo.title,
+        thumbnail: `https://i.ytimg.com/vi/${fallbackVideo.id}/maxresdefault.jpg`,
+        isLive: false,
+      }
+    : null;
+  const [video, setVideo] = useState<VideoData | null>(initial);
+  const [status, setStatus] = useState<Status>(initial ? "ready" : "loading");
   const [playing, setPlaying] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState<string | null>(null);
 
@@ -65,7 +75,7 @@ export function LivestreamSection({ variant }: LivestreamSectionProps) {
           isLive: false,
         });
         setStatus("ready");
-      } else {
+      } else if (!initial) {
         setStatus("empty");
       }
     })();
@@ -73,6 +83,7 @@ export function LivestreamSection({ variant }: LivestreamSectionProps) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isMobile = variant === "mobile";

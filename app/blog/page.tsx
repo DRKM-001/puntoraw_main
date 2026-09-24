@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllPosts, formatDate, episodeCode } from "@/lib/blog";
+import { getAllPosts, formatDate, episodeCode, youtubeThumb } from "@/lib/blog";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -38,12 +38,12 @@ export default function BlogPage() {
             {/* Featured (latest) */}
             <Link href={`/blog/${featured.slug}`} className="group block mb-10">
               <article className="rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 transition-all overflow-hidden">
-                {featured.cover && (
+                {(featured.cover || featured.youtubeId) && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={featured.cover}
+                    src={featured.cover ?? youtubeThumb(featured.youtubeId!)}
                     alt=""
-                    className="w-full aspect-[21/9] object-cover"
+                    className="w-full aspect-video md:aspect-[21/9] object-cover"
                   />
                 )}
                 <div className="p-6 sm:p-8">
@@ -71,7 +71,16 @@ export default function BlogPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   {rest.map((post) => (
                     <Link key={post.slug} href={`/blog/${post.slug}`} className="group block">
-                      <article className="h-full rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 transition-all p-5 sm:p-6 flex flex-col">
+                      <article className="h-full rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 transition-all overflow-hidden flex flex-col">
+                        {(post.cover || post.youtubeId) && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={post.cover ?? youtubeThumb(post.youtubeId!, "hqdefault")}
+                            alt=""
+                            className="w-full aspect-video object-cover"
+                          />
+                        )}
+                        <div className="p-5 sm:p-6 flex flex-col flex-1">
                         <PostMeta post={post} />
                         <h3 className="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors mb-1.5">
                           {post.title}
@@ -80,6 +89,7 @@ export default function BlogPage() {
                           {post.excerpt}
                         </p>
                         <ReadMore />
+                        </div>
                       </article>
                     </Link>
                   ))}

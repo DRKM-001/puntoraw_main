@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { getAllPosts, getPost, formatDate, episodeCode } from "@/lib/blog";
+import { getAllPosts, getPost, formatDate, episodeCode, youtubeThumb } from "@/lib/blog";
 import { mdxComponents } from "@/components/blog-mdx";
 
 interface BlogPostPageProps {
@@ -30,7 +30,11 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       type: "article",
       publishedTime: post.date,
       tags: post.tags,
-      ...(post.cover ? { images: [{ url: post.cover }] } : {}),
+      ...(post.cover
+        ? { images: [{ url: post.cover }] }
+        : post.youtubeId
+          ? { images: [{ url: youtubeThumb(post.youtubeId), width: 1280, height: 720 }] }
+          : {}),
     },
   };
 }
@@ -55,7 +59,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     author: { "@type": "Organization", name: post.author },
     publisher: { "@type": "Organization", name: ".RAW Sessions" },
     mainEntityOfPage: `https://puntoraw.org/blog/${post.slug}`,
-    ...(post.cover ? { image: `https://puntoraw.org${post.cover}` } : {}),
+    ...(post.cover
+      ? { image: `https://puntoraw.org${post.cover}` }
+      : post.youtubeId
+        ? { image: youtubeThumb(post.youtubeId) }
+        : {}),
   };
 
   return (
@@ -145,6 +153,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       )}
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
+        {/* Watch */}
+        {post.youtubeId && (
+          <div className="mb-8 aspect-video overflow-hidden rounded-xl bg-gray-900">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${post.youtubeId}?rel=0`}
+              title={post.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              loading="lazy"
+              className="w-full h-full border-0"
+            />
+          </div>
+        )}
+
         {/* Listen */}
         {post.spotifyId && (
           <div className="mb-10">
@@ -161,7 +183,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         )}
 
         {/* No embedded player yet → link to the show */}
-        {!post.spotifyId && (
+        {!post.spotifyId && !post.youtubeId && (
           <div className="mb-10 flex flex-wrap items-center gap-3 rounded-xl bg-gray-50 px-5 py-4">
             <span className="text-sm font-semibold text-gray-700 mr-1">Escucha el episodio:</span>
             {[
