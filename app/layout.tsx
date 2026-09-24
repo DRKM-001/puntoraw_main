@@ -21,6 +21,14 @@ const geistMono = localFont({
   fallback: ["ui-monospace", "monospace"],
 });
 
+const headline = localFont({
+  src: "./fonts/BigShouldersDisplay-Black.woff2",
+  variable: "--font-headline-face",
+  weight: "900",
+  display: "swap",
+  fallback: ["Impact", "Haettenschweiler", "Arial Narrow Bold", "sans-serif"],
+});
+
 const siteUrl = "https://puntoraw.org";
 const siteName = ".RAW Sessions";
 const siteDescription =
@@ -83,6 +91,7 @@ export const metadata: Metadata = {
 
 const navLinks = [
   { href: "/episodes", label: "Episodios" },
+  { href: "/blog", label: "Blog" },
   { href: "/schedule", label: "Calendario" },
   { href: "/team", label: "Equipo" },
   { href: "/merch", label: "Merch" },
@@ -112,7 +121,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${headline.variable} h-full antialiased`}
     >
       <head>
         {/* Google Analytics */}

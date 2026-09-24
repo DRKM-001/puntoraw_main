@@ -83,6 +83,19 @@ Episodes are currently stored as data in page components. To add a new episode:
 
 Future: Integrate markdown-based episode system for easier management.
 
+## Blog (resúmenes de episodios)
+
+Posts live in `content/blog/` as `.mdx` files and are rendered to static HTML at build time (`/blog` and `/blog/<file-name>`).
+
+1. Copy `content/blog/_plantilla.mdx` → `content/blog/<slug>.mdx` (files starting with `_` are ignored)
+2. Fill in the frontmatter (`title`, `date`, `excerpt` required; `episode` links it to `/episodes/<slug>` and adds a "Lee el resumen completo" card on that episode page; `spotifyId` shows the player)
+3. Write the summary in Markdown below the frontmatter
+4. Add the URL to `public/sitemap.xml`, commit and deploy
+
+Formatting blocks available inside posts: `<Pregunta>`, `<Perspectivas>` + `<Perspectiva nombre rol>`, `<Frase autor>`, `<Claves>` (see the template). Styles live in `components/blog-mdx.tsx`.
+
+Set `draft: true` to keep a post unpublished. Keep at least one published post — the static export needs one to build `/blog/[slug]`.
+
 ## Team
 
 - **Greg Anthony** - Founder & Speaker

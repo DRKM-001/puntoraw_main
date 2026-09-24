@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getPostForEpisode } from "@/lib/blog";
 
 interface EpisodePageProps {
   params: Promise<{
@@ -225,6 +226,8 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
     notFound();
   }
 
+  const blogPost = getPostForEpisode(slug);
+
   const formattedDate = new Date(episode.date).toLocaleDateString("es-419", {
     year: "numeric",
     month: "long",
@@ -308,6 +311,24 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
               &ldquo;{episode.quote}&rdquo;
             </p>
           </blockquote>
+        )}
+
+        {/* Blog summary link */}
+        {blogPost && (
+          <Link
+            href={`/blog/${blogPost.slug}`}
+            className="group flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 transition-all p-5 sm:p-6"
+          >
+            <div>
+              <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-1">
+                Lee el resumen completo
+              </p>
+              <p className="font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
+                {blogPost.title} — {blogPost.readingMinutes} min de lectura
+              </p>
+            </div>
+            <span className="text-red-600 text-xl group-hover:translate-x-1 transition-transform">→</span>
+          </Link>
         )}
 
         {/* Navigation */}
