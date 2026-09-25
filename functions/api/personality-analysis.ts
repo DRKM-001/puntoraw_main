@@ -4,9 +4,9 @@
 // notes[i] = optional free-text note the person wrote on question i (max 280 chars each).
 // Scores are recomputed here from the answers (never trusted from the client).
 //
-// Provider (first one configured wins):
-//   1. Claude     — secret ANTHROPIC_API_KEY (optional ANTHROPIC_MODEL)
-//   2. Gemini     — secret GEMINI_API_KEY or GEMINI_API (optional GEMINI_MODEL)
+// Providers, tried in this order (a failing one falls through to the next configured one):
+//   1. Gemini     — secret GEMINI_API_KEY or GEMINI_API (optional GEMINI_MODEL)
+//   2. Claude     — secret ANTHROPIC_API_KEY (optional ANTHROPIC_MODEL)
 //   3. Workers AI — a Workers AI binding named AI in Pages → Settings → Bindings
 // Responses are cached per answers+name, so the same result never costs twice.
 import {
@@ -207,15 +207,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   try {
     const prompt = buildPrompt(answers, name, notes);
-    const raw = env.ANTHROPIC_API_KEY
-      ? await askClaude(env, prompt)
-      : hasGemini
-        ? await askGemini(env, prompt)
-        : await askWorkersAI(env, prompt);
-    const analysis = parseAnalysis(raw);
+    const providers: [string, () => Promise<string>][] = [];
+    if (hasGemini) providers.push(["gemini", () => askGemini(env, prompt)]);
+    if (env.ANTHROPIC_API_KEY) providers.push(["claude", () => askClaude(env, prompt)]);
+    if (env.AI) providers.push(["workers-ai", () => askWorkersAI(env, prompt)]);
+
+    let analysis: Analysis | null = null;
+    for (const [label, ask] of providers) {
+      try {
+        const raw = await ask();
+        analysis = parseAnalysis(raw);
+        if (analysis) break;
+        console.error(`${label}: unparseable output`, raw.slice(0, 300));
+      } catch (err) {
+        console.error(`${label} failed:`, err);
+      }
+    }
     if (!analysis) {
-      console.error("Unparseable AI output:", raw.slice(0, 500));
-      return Response.json({ error: "La IA no respondió en el formato esperado. Intenta de nuevo." }, { status: 502 });
+      return Response.json({ error: "No se pudo generar el análisis. Intenta de nuevo." }, { status: 502 });
     }
 
     const res = Response.json(
