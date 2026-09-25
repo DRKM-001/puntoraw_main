@@ -4,7 +4,7 @@ import { PersonalityTest } from "@/components/personality-test";
 export const metadata: Metadata = {
   title: "Test de personalidad",
   description:
-    "¿Quién eres en la mesa? Un test corto de 20 preguntas basado en los cinco grandes rasgos de personalidad (Big Five), con tu código estilo Myers-Briggs.",
+    "Descubre quién eres y el porqué de tus comportamientos: 25 preguntas de Sí o No basadas en los cinco grandes rasgos (Big Five), con una lectura de IA que afinas tú mismo.",
   alternates: { canonical: "/test" },
 };
 

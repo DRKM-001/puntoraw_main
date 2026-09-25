@@ -155,3 +155,25 @@ export function decodeAnswers(r: string | null): number[] | null {
   if (!r || !new RegExp(`^[01]{${QUESTIONS.length}}$`).test(r)) return null;
   return r.split("").map(Number);
 }
+
+/**
+ * A fine-tuned code (after AI + feedback) may only differ from the test's code
+ * on traits that are near the middle (2 or 3 of 5). Returns the code if valid, else null.
+ */
+export function validAdjustedCode(s: Scores, code: string | null): string | null {
+  if (!code || !/^[EI][NS][FT][JP]-[AT]$/.test(code)) return null;
+  const base = typeCode(s).code;
+  const order: Trait[] = ["E", "O", "A", "C", "N"];
+  const pos = [0, 1, 2, 3, 5];
+  for (let i = 0; i < order.length; i++) {
+    const v = s[order[i]];
+    if (code[pos[i]] !== base[pos[i]] && v !== 2 && v !== 3) return null;
+  }
+  return code;
+}
+
+/** Letter info for any code like "ESTP-A" */
+export function lettersOf(code: string) {
+  const [l, id] = code.split("-");
+  return [...l.split(""), id === "A" ? "A" : "X"].map((k) => LETTERS[k]);
+}
