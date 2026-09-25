@@ -74,6 +74,63 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Personality test invitation */}
+      <section className="border-t border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 md:py-20">
+          <div className="grid gap-10 md:grid-cols-2 md:items-center">
+            <div>
+              <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-2">
+                Test de personalidad
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-4">
+                ¿Quién eres en la mesa?
+              </h2>
+              <p className="text-gray-600 leading-7 mb-6 max-w-md">
+                El test que hacemos en vivo con el equipo. 25 preguntas de Sí o No para
+                conocer tu línea base de personalidad, con un análisis con IA al final. Compara tu
+                resultado con el de la mesa.
+              </p>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+                <Link
+                  href="/test"
+                  className="inline-flex items-center justify-center h-12 px-8 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Hacer el test →
+                </Link>
+                <span className="font-mono text-xs uppercase tracking-widest text-gray-400">
+                  ~5 min · gratis · sin registro
+                </span>
+              </div>
+            </div>
+
+            {/* Sample result card */}
+            <Link
+              href="/test"
+              aria-hidden
+              tabIndex={-1}
+              className="block rounded-2xl border border-gray-100 bg-gray-50/60 p-6 sm:p-8 hover:border-gray-200 transition-colors"
+            >
+              <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">
+                Tu resultado
+              </p>
+              <p className="text-5xl font-bold tracking-tight text-gray-900 mb-1">????-?</p>
+              <p className="text-sm text-gray-500 mb-6">
+                Extraversión · Apertura · Amabilidad · Responsabilidad · Estabilidad
+              </p>
+              <div className="space-y-3">
+                {[4, 5, 2, 3, 4].map((v, i) => (
+                  <div key={i} className="grid grid-cols-5 gap-1">
+                    {Array.from({ length: 5 }, (_, j) => (
+                      <div key={j} className={`h-2.5 rounded-sm ${j < v ? "bg-red-600" : "bg-gray-200"}`} />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Three Pillars */}
       <section className="border-t border-gray-100 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16">
