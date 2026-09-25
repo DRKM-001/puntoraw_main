@@ -18,7 +18,7 @@ import {
 const STORAGE_KEY = "puntoraw-test-v3"; // v3 = Sí/No + notas + lectura con IA
 const TOTAL = QUESTIONS.length;
 const NOTE_MAX = 280;
-const MAX_ROUNDS = 3; // first reading + up to 2 refinements
+const MAX_ROUNDS = 10; // first reading + refinements until the person is satisfied (safety cap)
 
 type Stage = "intro" | "questions" | "results";
 
@@ -586,25 +586,33 @@ function Feedback({
 }) {
   const [reaction, setReaction] = useState<(typeof REACTIONS)[number]["key"] | null>(null);
   const [text, setText] = useState("");
+  const typed = text.trim();
+  // "Muy acertado" with nothing to add → keep this reading; anything else → refine
+  const settling = reaction === "si" && !typed;
+  const canSend = settling || typed.length >= 3 || reaction === "parte" || reaction === "no";
 
-  const submit = () => {
-    const label = REACTIONS.find((r) => r.key === reaction)?.label ?? "";
-    onRefine(`${label}${text.trim() ? `. ${text.trim()}` : ""}`);
+  const send = () => {
+    if (settling) return onSettle();
+    const label = REACTIONS.find((r) => r.key === reaction)?.label;
+    onRefine([label, typed].filter(Boolean).join(". "));
   };
 
   return (
     <div className="mt-10 rounded-2xl border border-gray-200 p-5 sm:p-6">
       <h3 className="font-semibold text-gray-900">{round === 1 ? "¿Qué tan acertado es?" : "¿Y ahora?"}</h3>
       <p className="text-sm text-gray-500 mt-1 mb-4">
-        Dime qué sí y qué no. A veces uno contesta por impulso; tu respuesta afina la lectura.
+        {round === 1
+          ? "Dime qué sí y qué no, o agrega lo que no te pregunté. A veces uno contesta por impulso; tu respuesta afina la lectura."
+          : "Sigue corrigiéndome hasta que te sientas bien leído."}
       </p>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2 mb-3">
         {REACTIONS.map((r) => (
           <button
             key={r.key}
-            onClick={() => setReaction(r.key)}
-            className={`rounded-xl border py-2.5 text-sm font-medium transition-colors ${
+            onClick={() => setReaction(reaction === r.key ? null : r.key)}
+            aria-pressed={reaction === r.key}
+            className={`rounded-xl border px-1 py-2.5 text-[13px] sm:text-sm font-medium whitespace-nowrap transition-colors ${
               reaction === r.key
                 ? "border-gray-900 bg-gray-900 text-white"
                 : "border-gray-200 text-gray-700 hover:border-gray-900"
@@ -615,41 +623,33 @@ function Feedback({
         ))}
       </div>
 
-      {reaction === "si" && (
-        <div className="mt-4 flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={onSettle}
-            className="flex-1 rounded-xl bg-red-600 text-white font-semibold py-3 hover:bg-red-700 transition-colors"
-          >
-            Quedarme con esta lectura
-          </button>
-          <button
-            onClick={() => setReaction("parte")}
-            className="flex-1 rounded-xl border border-gray-200 text-gray-700 font-medium py-3 hover:border-gray-900"
-          >
-            Agregar un matiz
-          </button>
-        </div>
-      )}
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value.slice(0, 800))}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && canSend) send();
+        }}
+        rows={4}
+        placeholder={
+          round === 1
+            ? "Escribe con tus palabras… Ej. Tienes razón en lo de la calma, pero no soy tan cerrado: con mi gente soy el que organiza todo."
+            : "¿Qué más ajustarías?"
+        }
+        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base leading-6 focus:outline-none focus:border-gray-900 resize-none"
+      />
 
-      {(reaction === "parte" || reaction === "no") && (
-        <div className="mt-4">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value.slice(0, 600))}
-            rows={4}
-            autoFocus
-            placeholder="Ej. Tienes razón en lo de la calma, pero no soy tan cerrado: con mi gente soy el que organiza todo…"
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base leading-6 focus:outline-none focus:border-gray-900 resize-none"
-          />
-          <button
-            onClick={submit}
-            disabled={text.trim().length < 5}
-            className="mt-2 w-full rounded-xl bg-red-600 text-white font-semibold py-3 hover:bg-red-700 disabled:opacity-40 transition-colors"
-          >
-            Afinar mi lectura
-          </button>
-        </div>
+      <button
+        onClick={send}
+        disabled={!canSend}
+        className="mt-2 w-full rounded-xl bg-red-600 text-white font-semibold py-3 hover:bg-red-700 disabled:opacity-40 transition-colors"
+      >
+        {settling ? "Quedarme con esta lectura" : "Afinar mi lectura"}
+      </button>
+
+      {round > 1 && !settling && (
+        <button onClick={onSettle} className="mt-3 w-full text-sm text-gray-500 hover:text-gray-900 py-1">
+          Estoy de acuerdo — terminar aquí
+        </button>
       )}
     </div>
   );

@@ -4,7 +4,7 @@
 // Round 2+ (afinar):    { answers, name?, notes?, history: [{ reading, feedback }] }
 //   answers  "0101…" 25 digits (1 = Sí, 0 = No) — scores are recomputed here, never trusted
 //   notes    optional per-question notes (≤280 chars each)
-//   history  previous readings + the person's reaction to each (max 3 rounds)
+//   history  previous readings + the person's reaction to each (latest 6 rounds are used)
 //
 // The AI returns a reading and, when refining, what it adjusted. On traits that are
 // "cerca del medio" (2–3 of 5) it may flip that letter based on the person's feedback;
@@ -57,7 +57,7 @@ const WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-5";
 // Alias that always points to Google's current Flash model
 const DEFAULT_GEMINI_MODEL = "gemini-flash-latest";
-const MAX_ROUNDS = 3;
+const MAX_ROUNDS = 6; // most recent rounds sent to the AI (the full conversation can be longer)
 
 const SYSTEM = `Eres el lector de personalidad de Punto RAW, un podcast mastermind en español donde un grupo de amigos emprendedores habla con honestidad brutal sobre crecimiento, responsabilidad e intenciones auténticas.
 
@@ -76,10 +76,11 @@ Cuando haya retroalimentación de la persona (rondas anteriores):
 - Tómala en serio pero con criterio: la gente a veces contesta por impulso, y a veces se ve distinto de como es. Si su corrección tiene sentido, ajusta. Si contradice claramente sus respuestas, dilo con respeto y explica por qué mantienes parte de tu lectura.
 - Reescribe la lectura completa integrando lo que te dijo (no la repitas igual).
 - En "ajustes" explica en 1–2 frases qué cambiaste y qué mantuviste.
-- Solo en rasgos marcados como "cerca del medio" puedes voltear su letra si la retroalimentación lo justifica: pon la clave del rasgo (E, O, A, C o N) en "voltearRasgos". En rasgos claros (0–1 o 4–5) NO voltees nada; matiza en la lectura.
+- En "letras" indica, para CADA rasgo marcado "cerca del medio", la letra que mejor describe a la persona según todo lo que sabes (respuestas + su retroalimentación). Si no hay razón para cambiar, repite la letra del test. En rasgos claros (0–1 o 4–5) no pongas nada: la letra no cambia; matiza en la lectura.
 
 Responde SOLO con un objeto JSON válido, sin texto adicional:
-{"lectura": "párrafo", "fortalezas": ["3 frases cortas"], "puntosCiegos": ["2–3 frases cortas"], "enEquipo": "1–2 frases: cómo aporta y qué choca en un grupo", "preguntaParaLaMesa": "una pregunta provocadora para discutir en vivo", "ajustes": "solo si hay retroalimentación, si no cadena vacía", "voltearRasgos": ["claves de rasgos cerca del medio cuya letra cambias; lista vacía si ninguno"]}`;
+{"lectura": "párrafo", "fortalezas": ["3 frases cortas"], "puntosCiegos": ["2–3 frases cortas"], "enEquipo": "1–2 frases: cómo aporta y qué choca en un grupo", "preguntaParaLaMesa": "una pregunta provocadora para discutir en vivo", "ajustes": "solo si hay retroalimentación, si no cadena vacía", "letras": {"<clave del rasgo cerca del medio>": "<letra elegida>"}}
+Ejemplo de "letras": {"O": "N", "A": "T"} — solo claves de rasgos cerca del medio, cada una con una de sus dos letras posibles.`;
 
 // Letter pairs per trait (the letter a score >= 3 gives, and the other one)
 const PAIRS: Record<Trait, [string, string]> = {
@@ -90,12 +91,27 @@ const PAIRS: Record<Trait, [string, string]> = {
   N: ["A", "T"], // identity (Seguro / Turbulento)
 };
 
+const LETTER_NAMES: Record<string, string> = {
+  E: "Extrovertido", I: "Introvertido", N: "Intuitivo", S: "Observador",
+  F: "Sentimental", J: "Planificador", P: "Explorador",
+};
+function letterName(letter: string, trait: Trait) {
+  if (letter === "T") return trait === "A" ? "Pensador" : "Turbulento";
+  if (letter === "A" && trait === "N") return "Seguro";
+  return LETTER_NAMES[letter] ?? letter;
+}
+
 function buildPrompt(answers: number[], name: string, notes: string[], history: Round[]) {
   const scores = scoreAnswers(answers);
   const { code, letters } = typeCode(scores);
   const traitLines = TRAITS.map((t) => {
     const v = scores[t.key];
-    const near = v === 2 || v === 3 ? " — cerca del medio (letra ajustable)" : "";
+    const [hi, lo] = PAIRS[t.key];
+    const current = v >= 3 ? hi : lo;
+    const near =
+      v === 2 || v === 3
+        ? ` — cerca del medio. Letra del test: ${current}. Opciones: ${hi} (${letterName(hi, t.key)}) o ${lo} (${letterName(lo, t.key)})`
+        : ` — claro. Letra: ${current}`;
     return `- [${t.key}] ${t.name}: ${v}/${ITEMS_PER_TRAIT} (0 = ${t.low}, ${ITEMS_PER_TRAIT} = ${t.high})${near}`;
   }).join("\n");
   const answerLines = QUESTIONS.map((q, i) => {
@@ -132,21 +148,23 @@ function parseAnalysis(raw: string, answers: number[]): Analysis | null {
     const lectura = String(j.lectura ?? j.resumen ?? "").trim();
     if (!lectura) return null;
 
-    // Apply trait flips — only on borderline traits (score 2 or 3)
+    // Apply the AI's chosen letters — only on borderline traits (score 2 or 3), only valid letters
     const scores = scoreAnswers(answers);
     const base = typeCode(scores).code; // e.g. "ISTP-A"
     const letters = [base[0], base[1], base[2], base[3], base[5]];
     const order: Trait[] = ["E", "O", "A", "C", "N"];
-    const flip = new Set(list(j.voltearRasgos).map((k) => k.trim().toUpperCase().slice(0, 1)));
+    const chosen =
+      j.letras && typeof j.letras === "object" && !Array.isArray(j.letras)
+        ? (j.letras as Record<string, unknown>)
+        : {};
     const cambios: Analysis["cambios"] = [];
     order.forEach((t, i) => {
       const v = scores[t];
-      if (!flip.has(t) || (v !== 2 && v !== 3)) return;
-      const [a, b] = PAIRS[t];
-      const current = letters[i];
-      const next = current === a ? b : a;
-      letters[i] = next;
-      cambios.push({ rasgo: TRAITS.find((x) => x.key === t)!.name, de: current, a: next });
+      if (v !== 2 && v !== 3) return;
+      const want = String(chosen[t] ?? "").trim().toUpperCase().slice(0, 1);
+      if (!PAIRS[t].includes(want) || want === letters[i]) return;
+      cambios.push({ rasgo: TRAITS.find((x) => x.key === t)!.name, de: letters[i], a: want });
+      letters[i] = want;
     });
     const codigo = `${letters.slice(0, 4).join("")}-${letters[4]}`;
 
@@ -276,7 +294,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   if (!history.length) {
     const notesHash = notes.some(Boolean) ? await sha(JSON.stringify(notes)) : "none";
     cacheKey = new Request(
-      `https://puntoraw.org/__cache/personality-analysis/v3/${body.answers}/${encodeURIComponent(name.toLowerCase())}/${notesHash}`
+      `https://puntoraw.org/__cache/personality-analysis/v4/${body.answers}/${encodeURIComponent(name.toLowerCase())}/${notesHash}`
     );
     const hit = await cache?.match(cacheKey);
     if (hit) return hit;
