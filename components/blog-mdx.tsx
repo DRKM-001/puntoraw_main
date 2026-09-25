@@ -117,7 +117,7 @@ export const mdxComponents = {
   ),
   li: (p: ComponentPropsWithoutRef<"li">) => (
     <li
-      className="text-base text-gray-600 leading-7 pl-1 [ul>&]:flex [ul>&]:gap-3 [ul>&]:before:content-['●'] [ul>&]:before:text-red-500 [ul>&]:before:text-xs [ul>&]:before:mt-1"
+      className="text-base text-gray-600 leading-7 [ul>&]:relative [ul>&]:pl-6 [ul>&]:before:absolute [ul>&]:before:left-0 [ul>&]:before:top-[0.55em] [ul>&]:before:content-[''] [ul>&]:before:w-1.5 [ul>&]:before:h-1.5 [ul>&]:before:rounded-full [ul>&]:before:bg-red-500"
       {...p}
     />
   ),

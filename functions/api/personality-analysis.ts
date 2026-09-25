@@ -76,7 +76,8 @@ Cuando haya retroalimentación de la persona (rondas anteriores):
 - Tómala en serio pero con criterio: la gente a veces contesta por impulso, y a veces se ve distinto de como es. Si su corrección tiene sentido, ajusta. Si contradice claramente sus respuestas, dilo con respeto y explica por qué mantienes parte de tu lectura.
 - Reescribe la lectura completa integrando lo que te dijo (no la repitas igual).
 - En "ajustes" explica en 1–2 frases qué cambiaste y qué mantuviste.
-- En "letras" indica, para CADA rasgo marcado "cerca del medio", la letra que mejor describe a la persona según todo lo que sabes (respuestas + su retroalimentación). Si no hay razón para cambiar, repite la letra del test. En rasgos claros (0–1 o 4–5) no pongas nada: la letra no cambia; matiza en la lectura.
+- En "letras" indica, para CADA rasgo marcado "cerca del medio", la letra que corresponde. Regla estricta: mantén la letra del test (o la que ya acordaron en rondas anteriores) A MENOS QUE la retroalimentación de la persona hable directamente de ese rasgo y justifique el cambio. No cambies letras por tu cuenta ni por contradicciones en sus respuestas: eso coméntalo en la lectura. En rasgos claros (0–1 o 4–5) no pongas nada.
+- Si cambias alguna letra, menciónalo explícitamente en "ajustes" (ej. "Cambié J por P porque me dijiste que…").
 
 Responde SOLO con un objeto JSON válido, sin texto adicional:
 {"lectura": "párrafo", "fortalezas": ["3 frases cortas"], "puntosCiegos": ["2–3 frases cortas"], "enEquipo": "1–2 frases: cómo aporta y qué choca en un grupo", "preguntaParaLaMesa": "una pregunta provocadora para discutir en vivo", "ajustes": "solo si hay retroalimentación, si no cadena vacía", "letras": {"<clave del rasgo cerca del medio>": "<letra elegida>"}}
@@ -294,7 +295,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   if (!history.length) {
     const notesHash = notes.some(Boolean) ? await sha(JSON.stringify(notes)) : "none";
     cacheKey = new Request(
-      `https://puntoraw.org/__cache/personality-analysis/v4/${body.answers}/${encodeURIComponent(name.toLowerCase())}/${notesHash}`
+      `https://puntoraw.org/__cache/personality-analysis/v5/${body.answers}/${encodeURIComponent(name.toLowerCase())}/${notesHash}`
     );
     const hit = await cache?.match(cacheKey);
     if (hit) return hit;
