@@ -20,6 +20,7 @@ const teamMembers = [
     pixelUrl: "/greg_pxl.jpg",
     initials: "GA",
     coffeeUrl: "https://buymeacoffee.com/roveloga",
+    profileHref: "/team/greg",
   },
   {
     name: "Rafa",
@@ -29,6 +30,7 @@ const teamMembers = [
     videoUrl: "/rafa_loop.mp4",
     initials: "R",
     coffeeUrl: "https://buymeacoffee.com/rafaelcdelgado",
+    profileHref: "/team/rafa",
   },
   {
     name: "RJ",
@@ -37,6 +39,7 @@ const teamMembers = [
     pixelUrl: "/rj_pxl.JPG",
     initials: "RJ",
     coffeeUrl: "https://venmo.com/u/rjenriquez",
+    profileHref: "/team/rj",
     coffeeLabel: "Venmo",
     coffeeColor: "blue" as const,
   },
