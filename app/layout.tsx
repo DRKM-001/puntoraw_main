@@ -91,8 +91,6 @@ export const metadata: Metadata = {
 
 const navLinks = [
   { href: "/episodes", label: "Episodios" },
-  { href: "/blog", label: "Blog" },
-  { href: "/schedule", label: "Calendario" },
   { href: "/team", label: "Equipo" },
   { href: "/merch", label: "Merch" },
 ];

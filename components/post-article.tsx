@@ -1,50 +1,13 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+// Full episode page with a write-up (content/blog/*.mdx): header, video, audio and the summary.
 import Link from "next/link";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { getAllPosts, getPost, formatDate, episodeCode, youtubeThumb } from "@/lib/blog";
+import { getAllPosts, formatDate, episodeCode, youtubeThumb, type Post } from "@/lib/blog";
 import { mdxComponents } from "@/components/blog-mdx";
+import { EpisodeVideo } from "@/components/episode-video";
 
-interface BlogPostPageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export const dynamicParams = false;
-
-export async function generateStaticParams() {
-  return getAllPosts().map((p) => ({ slug: p.slug }));
-}
-
-export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const post = getPost(slug);
-  if (!post) return { title: "Publicación no encontrada" };
-
-  return {
-    title: post.title,
-    description: post.excerpt,
-    alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: {
-      title: `${post.title} | .RAW Sessions`,
-      description: post.excerpt,
-      type: "article",
-      publishedTime: post.date,
-      tags: post.tags,
-      ...(post.cover
-        ? { images: [{ url: post.cover }] }
-        : post.youtubeId
-          ? { images: [{ url: youtubeThumb(post.youtubeId), width: 1280, height: 720 }] }
-          : {}),
-    },
-  };
-}
-
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const { slug } = await params;
-  const post = getPost(slug);
-  if (!post) notFound();
-
+export function PostArticle({ post, spotifyFallback }: { post: Post; spotifyFallback?: string }) {
   const all = getAllPosts();
+  const spotifyId = post.spotifyId || spotifyFallback;
   const idx = all.findIndex((p) => p.slug === post.slug);
   const newer = idx > 0 ? all[idx - 1] : undefined;
   const older = idx < all.length - 1 ? all[idx + 1] : undefined;
@@ -58,7 +21,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     inLanguage: "es-419",
     author: { "@type": "Organization", name: post.author },
     publisher: { "@type": "Organization", name: ".RAW Sessions" },
-    mainEntityOfPage: `https://puntoraw.org/blog/${post.slug}`,
+    mainEntityOfPage: `https://puntoraw.org/episodes/${post.slug}`,
     ...(post.cover
       ? { image: `https://puntoraw.org${post.cover}` }
       : post.youtubeId
@@ -76,10 +39,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       {/* Header */}
       <header className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 md:pt-12 pb-8">
         <Link
-          href="/blog"
+          href="/episodes"
           className="text-gray-400 hover:text-gray-900 transition text-sm mb-8 inline-flex items-center py-2"
         >
-          ← Volver al Blog
+          ← Volver a Episodios
         </Link>
 
         {/* Kicker + headline */}
@@ -153,25 +116,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       )}
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 md:pb-20">
-        {/* Watch */}
-        {post.youtubeId && (
-          <div className="mb-8 aspect-video overflow-hidden rounded-xl bg-gray-900">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${post.youtubeId}?rel=0`}
-              title={post.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              loading="lazy"
-              className="w-full h-full border-0"
-            />
-          </div>
-        )}
+        {/* Watch — from frontmatter, or matched from the channel's uploads */}
+        <EpisodeVideo youtubeId={post.youtubeId} season={post.season} seasonEpisode={post.seasonEpisode} title={post.title} />
 
         {/* Listen */}
-        {post.spotifyId && (
+        {spotifyId && (
           <div className="mb-10">
             <iframe
-              src={`https://open.spotify.com/embed/episode/${post.spotifyId}?utm_source=generator`}
+              src={`https://open.spotify.com/embed/episode/${spotifyId}?utm_source=generator`}
               width="100%"
               height="152"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -182,8 +134,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         )}
 
-        {/* No embedded player yet → link to the show */}
-        {!post.spotifyId && !post.youtubeId && (
+        {/* No Spotify player → link to the show */}
+        {!spotifyId && (
           <div className="mb-10 flex flex-wrap items-center gap-3 rounded-xl bg-gray-50 px-5 py-4">
             <span className="text-sm font-semibold text-gray-700 mr-1">Escucha el episodio:</span>
             {[
@@ -226,29 +178,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <MDXRemote source={post.content} components={mdxComponents} />
         </div>
 
-        {/* Episode CTA */}
-        {post.episode && (
-          <Link
-            href={`/episodes/${post.episode}`}
-            className="group mt-12 flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 transition-all p-5 sm:p-6"
-          >
-            <div>
-              <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-1">
-                Escucha el episodio completo
-              </p>
-              <p className="font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
-                {post.title}
-              </p>
-            </div>
-            <span className="text-red-600 text-xl group-hover:translate-x-1 transition-transform">→</span>
-          </Link>
-        )}
-
         {/* Prev / next */}
         {(newer || older) && (
           <nav className="mt-12 pt-8 border-t border-gray-200 grid gap-4 sm:grid-cols-2">
             {older ? (
-              <Link href={`/blog/${older.slug}`} className="group">
+              <Link href={`/episodes/${older.slug}`} className="group">
                 <p className="text-xs text-gray-400 mb-1">← Anterior</p>
                 <p className="font-medium text-gray-900 group-hover:text-red-600 transition-colors">
                   {older.title}
@@ -258,7 +192,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <span />
             )}
             {newer && (
-              <Link href={`/blog/${newer.slug}`} className="group sm:text-right">
+              <Link href={`/episodes/${newer.slug}`} className="group sm:text-right">
                 <p className="text-xs text-gray-400 mb-1">Siguiente →</p>
                 <p className="font-medium text-gray-900 group-hover:text-red-600 transition-colors">
                   {newer.title}

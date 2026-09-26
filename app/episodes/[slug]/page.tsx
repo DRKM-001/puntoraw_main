@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getAllPosts } from "@/lib/blog";
+import { getAllPosts, getPost, youtubeThumb, type Post } from "@/lib/blog";
+import { PostArticle } from "@/components/post-article";
 import { EpisodeDetail, type EpisodeData, type RelatedPost } from "@/components/episode-detail";
 
 interface EpisodePageProps {
@@ -187,15 +188,46 @@ const episodes: Record<string, EpisodeData> = {
 /** Placeholder page that renders any episode from D1 on the client. */
 export const SHELL_SLUG = "pendiente";
 
+/** The write-up for a slug: the post itself, or the post for that hardcoded episode (by season + episode). */
+function postFor(slug: string): Post | undefined {
+  const direct = getPost(slug);
+  if (direct) return direct;
+  const ep = episodes[slug];
+  if (!ep) return undefined;
+  return getAllPosts().find((p) => p.season === ep.season && p.seasonEpisode === ep.seasonEpisode);
+}
+
 export async function generateStaticParams() {
-  return [...Object.keys(episodes), SHELL_SLUG].map((slug) => ({ slug }));
+  const slugs = new Set([...Object.keys(episodes), ...getAllPosts().map((p) => p.slug), SHELL_SLUG]);
+  return [...slugs].map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: EpisodePageProps): Promise<Metadata> {
   const { slug } = await params;
+
+  const post = postFor(slug);
+  if (post) {
+    return {
+      title: post.title,
+      description: post.excerpt,
+      alternates: { canonical: `/episodes/${post.slug}` },
+      openGraph: {
+        title: `${post.title} | .RAW Sessions`,
+        description: post.excerpt,
+        type: "article",
+        publishedTime: post.date,
+        tags: post.tags,
+        ...(post.cover
+          ? { images: [{ url: post.cover }] }
+          : post.youtubeId
+            ? { images: [{ url: youtubeThumb(post.youtubeId), width: 1280, height: 720 }] }
+            : {}),
+      },
+    };
+  }
+
   const episode = episodes[slug];
   if (!episode) return { title: "Episodio" };
-
   return {
     title: `${episode.title} — T${episode.season} Ep${episode.seasonEpisode}`,
     description: episode.summary,
@@ -210,6 +242,13 @@ export async function generateMetadata({ params }: EpisodePageProps): Promise<Me
 
 export default async function EpisodePage({ params }: EpisodePageProps) {
   const { slug } = await params;
+
+  // Episodes with a write-up get the full article (video, audio, summary)
+  const post = postFor(slug);
+  if (post) {
+    const ep = Object.values(episodes).find((e) => e.season === post.season && e.seasonEpisode === post.seasonEpisode);
+    return <PostArticle post={post} spotifyFallback={ep?.spotifyId} />;
+  }
 
   // Blog posts known at build time — matched to episodes by season + episode number
   const posts: RelatedPost[] = getAllPosts()

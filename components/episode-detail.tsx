@@ -82,6 +82,22 @@ export function EpisodeDetail({
 }) {
   const [episode, setEpisode] = useState<EpisodeData | null>(initial);
   const [state, setState] = useState<"loading" | "ready" | "missing">(initial ? "ready" : "loading");
+  const [uploads, setUploads] = useState<{ videoId: string; season: number | null; seasonEpisode: number | null }[]>([]);
+
+  // YouTube uploads (newest first) — gives every episode page its video, even without a blog post
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/youtube-videos")
+      .then(async (r) => {
+        if (!r.ok || !r.headers.get("content-type")?.includes("application/json")) return;
+        const data = (await r.json()) as { videos?: typeof uploads };
+        if (!cancelled && data.videos) setUploads(data.videos);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     // The real slug comes from the URL (the shell page is served for any unknown slug)
@@ -142,6 +158,9 @@ export function EpisodeDetail({
   // Spotify ID: from D1, or from the matching blog post's frontmatter
   const spotifyId = episode.spotifyId || post?.spotifyId;
   const summary = episode.summary || post?.excerpt || "";
+  const youtubeId =
+    post?.youtubeId ||
+    uploads.find((v) => v.season === episode.season && v.seasonEpisode === episode.seasonEpisode)?.videoId;
 
   return (
     <div>
@@ -172,11 +191,11 @@ export function EpisodeDetail({
           </div>
         </div>
 
-        {/* YouTube (from the matching blog post) */}
-        {post?.youtubeId && (
+        {/* YouTube (from the matching blog post, or the channel's uploads) */}
+        {youtubeId && (
           <div className="mb-6 aspect-video overflow-hidden rounded-xl bg-gray-900">
             <iframe
-              src={`https://www.youtube-nocookie.com/embed/${post.youtubeId}?rel=0`}
+              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
               title={episode.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
@@ -240,7 +259,7 @@ export function EpisodeDetail({
         {/* Blog summary link */}
         {post && (
           <Link
-            href={`/blog/${post.slug}`}
+            href={`/episodes/${post.slug}`}
             className="group flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 transition-all p-5 sm:p-6"
           >
             <div>

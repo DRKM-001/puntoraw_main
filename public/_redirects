@@ -1,0 +1,4 @@
+# The blog was merged into Episodios
+/blog /episodes 301
+/blog/ /episodes 301
+/blog/* /episodes/:splat 301

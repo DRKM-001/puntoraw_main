@@ -1,9 +1,20 @@
 import Link from "next/link";
 import { LivestreamSection } from "@/components/livestream-section";
-import { getLatestVideo } from "@/lib/blog";
+import { getAllPosts, getLatestVideo } from "@/lib/blog";
+import { RecentEpisodes, type ShelfPost } from "@/components/recent-episodes";
 
 export default function Home() {
   const fallbackVideo = getLatestVideo();
+  const shelfPosts: ShelfPost[] = getAllPosts().map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    date: p.date,
+    excerpt: p.excerpt,
+    duration: p.duration,
+    season: p.season,
+    seasonEpisode: p.seasonEpisode,
+    youtubeId: p.youtubeId,
+  }));
 
   return (
     <div>
@@ -73,6 +84,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Previous episodes shelf */}
+      <RecentEpisodes posts={shelfPosts} />
 
       {/* Personality test banner */}
       <section className="border-t border-gray-100">
